@@ -1,0 +1,9 @@
+.idea
+venv
+build
+dist/*
+*__pacache__
+*.log
+data
+
+*.spec
