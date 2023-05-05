@@ -1,3 +1,5 @@
+import sys
+
 import pyvisa
 
 from config import config
@@ -19,10 +21,10 @@ class KeithleyBlock:
     def reset(self):
         self.instr.write("*RST")
 
-    @visa_exception
     def test(self):
         """Test function: 0 - Good, 1 - Bad"""
-        return self.instr.query("*TST?")
+        self.instr.query("*TST?")
+        return sys.stdout
 
     @visa_exception
     def set_output_state(self, state: int):
@@ -57,7 +59,9 @@ class KeithleyBlock:
 
 if __name__ == '__main__':
     block = KeithleyBlock()
-    print(block.idn())
+    res = block.test()
+    print(f'res {res}')
+    block.idn()
     print(block.get_output_state())
     print(block.get_current())
     print(block.get_voltage())
