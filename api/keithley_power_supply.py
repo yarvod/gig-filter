@@ -1,9 +1,8 @@
-import sys
-
 import pyvisa
 
 from config import config
 from utils.decorators import visa_exception
+from utils.logger import logger
 
 
 class KeithleyBlock:
@@ -11,7 +10,11 @@ class KeithleyBlock:
     def __init__(self, address: str = config.KEITHLEY_ADDRESS):
         self.address = address
         resource_manager = pyvisa.ResourceManager()
-        self.instr = resource_manager.open_resource(self.address)
+        try:
+            self.instr = resource_manager.open_resource(self.address)
+        except pyvisa.errors.VisaIOError as e:
+            self.instr = None
+            logger.error(f"[KeithleyBlock.__init__] Initialization error {e}")
 
     @visa_exception
     def idn(self):
@@ -21,6 +24,7 @@ class KeithleyBlock:
     def reset(self):
         self.instr.write("*RST")
 
+    @visa_exception
     def test(self):
         """Test function: 0 - Good, 1 - Bad"""
         return self.instr.query("*TST?").strip()
@@ -57,6 +61,7 @@ class KeithleyBlock:
         self.instr.write(f"SOUR:VOLT {voltage}V")
         return float(self.instr.query(f"SOUR:VOLT?"))
 
+    @visa_exception
     def close(self):
         self.instr.close()
 

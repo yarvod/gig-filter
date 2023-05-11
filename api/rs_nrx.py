@@ -2,13 +2,18 @@ from RsInstrument import *
 
 from config import config
 from utils.decorators import exception
+from utils.logger import logger
 
 
 class NRXBlock:
 
     def __init__(self, ip: str = config.NRX_IP):
         self.address = f"TCPIP::{ip}::INSTR"
-        self.instr = RsInstrument(self.address, reset=False)
+        try:
+            self.instr = RsInstrument(self.address, reset=False)
+        except ResourceError as e:
+            self.instr = None
+            logger.error(f"[NRXBlock.__init__] Initialization error {e}")
 
     @exception
     def close(self):

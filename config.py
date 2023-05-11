@@ -36,7 +36,6 @@ class Config:
 
     NRX_TEST_MAP = dict(
         (
-            (None, "Ok"),
             ("0", "Ok"),
             ("1", "Error"),
         )

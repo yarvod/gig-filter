@@ -21,7 +21,7 @@ def visa_exception(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except (pyvisa.errors.VisaIOError, TypeError, ValueError) as e:
+        except (pyvisa.errors.VisaIOError, TypeError, ValueError, AttributeError) as e:
             logger.error(f"[{func.__qualname__}] {e}")
 
     return wrapper
