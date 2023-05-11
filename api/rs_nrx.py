@@ -1,5 +1,3 @@
-import time
-
 from RsInstrument import *
 
 from config import config
@@ -9,13 +7,16 @@ from utils.logger import logger
 
 class NRXBlock:
 
-    def __init__(self, ip: str = config.NRX_IP):
+    def __init__(self, ip: str = config.NRX_IP, avg_time: float = config.NRX_AVG_TIME):
         self.address = f"TCPIP::{ip}::INSTR"
-        try:
-            self.instr = RsInstrument(self.address, reset=False)
-        except ResourceError as e:
-            self.instr = None
-            logger.error(f"[NRXBlock.__init__] Initialization error {e}")
+        self.instr = None
+
+        self.open_instrument()
+        self.set_averaging_time(avg_time)
+
+    @exception
+    def open_instrument(self):
+        self.instr = RsInstrument(self.address, reset=False)
 
     @exception
     def close(self):
@@ -52,15 +53,24 @@ class NRXBlock:
     def fetch(self):
         return self.instr.query_float("FETCH?")
 
+    @exception
     def set_lower_limit(self, limit: float):
         self.instr.write(f"CALCulate1:LIMit1:LOWer:DATA {limit}")
 
+    @exception
     def set_upper_limit(self, limit: float):
         self.instr.write(f"CALCulate1:LIMit1:UPPer:DATA {limit}")
+
+    @exception
+    def set_averaging_time(self, time: float = config.NRX_AVG_TIME):
+        """
+        :param time: seconds
+        :return:
+        """
+        self.instr.write(f"CALCulate:CHANnel:AVERage:COUNt:AUTO:MTIMe {time}")
 
 
 if __name__ == "__main__":
     nrx = NRXBlock()
     for i in range(10):
-        time.sleep(0.01)
         print(nrx.meas())

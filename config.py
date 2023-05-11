@@ -42,6 +42,7 @@ class Config:
             ("1", "Error"),
         )
     )
+    NRX_AVG_TIME = 0.01
 
 
 config = Config()

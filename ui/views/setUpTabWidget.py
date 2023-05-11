@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QGridLayout,
     QLabel,
     QLineEdit,
-    QPushButton,
+    QPushButton, QDoubleSpinBox,
 )
 
 from api.keithley_power_supply import KeithleyBlock
@@ -49,7 +49,7 @@ class NRXBlockWorker(QObject):
     status = pyqtSignal(str)
 
     def run(self):
-        block = NRXBlock(ip=config.NRX_IP)
+        block = NRXBlock(ip=config.NRX_IP, avg_time=config.NRX_AVG_TIME)
         result = block.test()
         block.close()
         self.status.emit(config.NRX_TEST_MAP.get(result, "Error"))
@@ -75,6 +75,11 @@ class SetUpTabWidget(QWidget):
         self.nrxIP = QLineEdit(self)
         self.nrxIP.setText(config.NRX_IP)
 
+        self.nrxAvgTimeLabel = QLabel(self)
+        self.nrxAvgTimeLabel.setText("NRX Avg time, s:")
+        self.nrxAvgTime = QDoubleSpinBox(self)
+        self.nrxAvgTime.setRange(0.01, 1000)
+
         self.nrxStatusLabel = QLabel(self)
         self.nrxStatusLabel.setText("NRX status:")
         self.nrxStatus = QLabel(self)
@@ -85,9 +90,11 @@ class SetUpTabWidget(QWidget):
 
         layout.addWidget(self.nrxIPLabel, 1, 0)
         layout.addWidget(self.nrxIP, 1, 1)
-        layout.addWidget(self.nrxStatusLabel, 2, 0)
-        layout.addWidget(self.nrxStatus, 2, 1)
-        layout.addWidget(self.btnInitNRX, 3, 0, 1, 2)
+        layout.addWidget(self.nrxAvgTimeLabel, 2, 0)
+        layout.addWidget(self.nrxAvgTime, 2, 1)
+        layout.addWidget(self.nrxStatusLabel, 3, 0)
+        layout.addWidget(self.nrxStatus, 3, 1)
+        layout.addWidget(self.btnInitNRX, 4, 0, 1, 2)
 
         self.groupNRX.setLayout(layout)
 
@@ -152,6 +159,7 @@ class SetUpTabWidget(QWidget):
         self.nrx_worker = NRXBlockWorker()
 
         config.NRX_IP = self.nrxIP.text()
+        config.NRX_AVG_TIME = self.nrxAvgTime.value()
 
         self.nrx_worker.moveToThread(self.nrx_thread)
         self.nrx_thread.started.connect(self.nrx_worker.run)

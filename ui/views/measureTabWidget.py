@@ -65,9 +65,8 @@ class NRXBlockStreamWorker(QObject):
     power = pyqtSignal(float)
 
     def run(self):
-        block = NRXBlock(ip=config.NRX_IP)
+        block = NRXBlock(ip=config.NRX_IP, avg_time=config.NRX_AVG_TIME)
         while config.NRX_STREAM:
-            time.sleep(0.1)
             power = block.meas()
             self.power.emit(power)
         block.close()
