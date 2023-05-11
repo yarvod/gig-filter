@@ -8,7 +8,6 @@ from PyQt6.QtWidgets import (
     QGroupBox,
     QGridLayout,
     QLabel,
-    QLineEdit,
     QPushButton,
     QDoubleSpinBox,
 )
@@ -74,7 +73,7 @@ class NRXBlockStreamWorker(QObject):
         self.finished.emit()
 
 
-class MeasureTabWidget(QWidget):
+class StreamTabWidget(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
         self.layout = QVBoxLayout(self)
