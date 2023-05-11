@@ -52,6 +52,11 @@ class KeithleyBlock:
         self.instr.write(f"SOUR:CURR {current}A")
         return float(self.instr.query(f"SOUR:CURR?"))
 
+    @visa_exception
+    def set_voltage(self, voltage: float) -> float:
+        self.instr.write(f"SOUR:VOLT {voltage}V")
+        return float(self.instr.query(f"SOUR:VOLT?"))
+
     def close(self):
         self.instr.close()
 
