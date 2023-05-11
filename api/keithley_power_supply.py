@@ -33,7 +33,7 @@ class KeithleyBlock:
     @visa_exception
     def get_output_state(self):
         """Output State 0 - off, 1 - on"""
-        return self.instr.query(f"OUTPUT?")
+        return self.instr.query(f"OUTPUT?").strip()
 
     @visa_exception
     def get_current(self):

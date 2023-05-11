@@ -2,6 +2,20 @@ class Config:
     KEITHLEY_ADDRESS = "GPIB0::22::INSTR"
     NRX_IP = "169.254.2.20"
 
+    KEITHLEY_OUTPUT_STATE = "0"
+    KEITHLEY_OUTPUT_STATE_MAP = dict(
+        (
+            ("0", "Off"),
+            ("1", "On")
+        )
+    )
+    KEITHLEY_OUTPUT_STATE_MAP_REVERSE = dict(
+        (
+            ("On", "0"),
+            ("Off", "1")
+        )
+    )
+
     KEITHLEY_TEST_MAP = dict(
         (
             ("0", "Ok"),
