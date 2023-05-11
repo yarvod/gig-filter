@@ -34,6 +34,8 @@ class Config:
         )
     )
 
+    NRX_STREAM = False
+
     NRX_TEST_MAP = dict(
         (
             ("0", "Ok"),

@@ -1,3 +1,5 @@
+import time
+
 from RsInstrument import *
 
 from config import config
@@ -38,11 +40,21 @@ class NRXBlock:
     def get_power(self):
         return self.instr.query_float("READ?")
 
+    @exception
+    def meas(self):
+        return self.instr.query_float("MEAS? -50,3,(@1)")
+
+    @exception
+    def get_conf(self):
+        return self.instr.query("CONF?")
+
+    @exception
+    def fetch(self):
+        return self.instr.query_float("FETCH?")
+
 
 if __name__ == "__main__":
     nrx = NRXBlock()
-    nrx.reset()
-    # print(nrx.idn())
-    # nrx.configure()
-    print(nrx.get_power())
-    print(nrx.get_power())
+    for i in range(10):
+        time.sleep(0.01)
+        print(nrx.meas())
