@@ -5,7 +5,15 @@ class Config:
     KEITHLEY_TEST_MAP = dict(
         (
             ("0", "Ok"),
-            ("1", "Error"),
+            ("1", "Module Initialization Lost"),
+            ("2", "Mainframe Initialization Lost"),
+            ("3", "Module Calibration Lost"),
+            ("4", "Non-volatile RAM STATE section checksum failed"),
+            ("5", "Non-volatile RAM RST section checksum failed"),
+            ("10", "RAM selftest"),
+            ("40", "Flash write failed"),
+            ("41", "Flash erase failed"),
+            ("80", "Digital I/O selftest erro"),
         )
     )
 

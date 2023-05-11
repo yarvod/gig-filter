@@ -23,8 +23,7 @@ class KeithleyBlock:
 
     def test(self):
         """Test function: 0 - Good, 1 - Bad"""
-        self.instr.query("*TST?")
-        return sys.stdout
+        return self.instr.query("*TST?").strip()
 
     @visa_exception
     def set_output_state(self, state: int):
@@ -61,7 +60,7 @@ if __name__ == '__main__':
     block = KeithleyBlock()
     res = block.test()
     print(f'res {res}')
-    block.idn()
+    print(config.KEITHLEY_TEST_MAP[res])
     print(block.get_output_state())
     print(block.get_current())
     print(block.get_voltage())

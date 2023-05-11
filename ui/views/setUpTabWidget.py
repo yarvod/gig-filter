@@ -26,7 +26,7 @@ class KeithleyWorker(QObject):
     def run(self):
         keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
         result = keithley.test()
-        status = "Ok" if result == "0" else "Error"
+        status = config.KEITHLEY_TEST_MAP.get(result, "Undefined Error")
         keithley.close()
         self.status.emit(status)
         self.finished.emit()
