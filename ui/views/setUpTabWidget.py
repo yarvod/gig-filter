@@ -8,7 +8,8 @@ from PyQt6.QtWidgets import (
     QGridLayout,
     QLabel,
     QLineEdit,
-    QPushButton, QDoubleSpinBox,
+    QPushButton,
+    QDoubleSpinBox,
 )
 
 from api.keithley_power_supply import KeithleyBlock
@@ -126,7 +127,11 @@ class SetUpTabWidget(QWidget):
         layout.addWidget(self.keithleyStatus, 2, 1)
         layout.addWidget(self.btnInitKeithley, 3, 0, 1, 2)
         layout.addWidget(self.keithleyStateLabel, 4, 0)
-        layout.addWidget(self.btnKeithleyState, 4, 1,)
+        layout.addWidget(
+            self.btnKeithleyState,
+            4,
+            1,
+        )
 
         self.groupKeithley.setLayout(layout)
 
@@ -138,18 +143,26 @@ class SetUpTabWidget(QWidget):
         self.keithley_state_thread = QThread()
         self.keithley_state_worker = KeithleyOutputWorker()
 
-        config.KEITHLEY_OUTPUT_STATE = config.KEITHLEY_OUTPUT_STATE_MAP_REVERSE.get(self.btnKeithleyState.text(), "0")
+        config.KEITHLEY_OUTPUT_STATE = config.KEITHLEY_OUTPUT_STATE_MAP_REVERSE.get(
+            self.btnKeithleyState.text(), "0"
+        )
 
         self.keithley_state_worker.moveToThread(self.keithley_state_thread)
         self.keithley_state_thread.started.connect(self.keithley_state_worker.run)
         self.keithley_state_worker.finished.connect(self.keithley_state_thread.quit)
-        self.keithley_state_worker.finished.connect(self.keithley_state_worker.deleteLater)
-        self.keithley_state_thread.finished.connect(self.keithley_state_thread.deleteLater)
+        self.keithley_state_worker.finished.connect(
+            self.keithley_state_worker.deleteLater
+        )
+        self.keithley_state_thread.finished.connect(
+            self.keithley_state_thread.deleteLater
+        )
         self.keithley_state_worker.state.connect(self.set_keithley_btn_state)
         self.keithley_state_thread.start()
 
         self.btnKeithleyState.setEnabled(False)
-        self.keithley_state_thread.finished.connect(lambda: self.btnKeithleyState.setEnabled(True))
+        self.keithley_state_thread.finished.connect(
+            lambda: self.btnKeithleyState.setEnabled(True)
+        )
 
     def set_nrx_status(self, status: str):
         self.nrxStatus.setText(status)
@@ -190,4 +203,6 @@ class SetUpTabWidget(QWidget):
         self.keithley_thread.start()
 
         self.btnInitKeithley.setEnabled(False)
-        self.keithley_thread.finished.connect(lambda: self.btnInitKeithley.setEnabled(True))
+        self.keithley_thread.finished.connect(
+            lambda: self.btnInitKeithley.setEnabled(True)
+        )

@@ -6,7 +6,6 @@ from utils.logger import logger
 
 
 class KeithleyBlock:
-
     def __init__(self, address: str = config.KEITHLEY_ADDRESS):
         self.address = address
         resource_manager = pyvisa.ResourceManager()
@@ -66,10 +65,10 @@ class KeithleyBlock:
         self.instr.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     block = KeithleyBlock()
     res = block.test()
-    print(f'res {res}')
+    print(f"res {res}")
     print(config.KEITHLEY_TEST_MAP[res])
     print(block.get_output_state())
     print(block.get_current())

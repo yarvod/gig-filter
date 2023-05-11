@@ -9,7 +9,8 @@ from PyQt6.QtWidgets import (
     QGridLayout,
     QLabel,
     QLineEdit,
-    QPushButton, QDoubleSpinBox,
+    QPushButton,
+    QDoubleSpinBox,
 )
 
 from api.keithley_power_supply import KeithleyBlock
@@ -99,10 +100,16 @@ class MeasureTabWidget(QWidget):
         self.btnStopStreamNRX.setEnabled(False)
         self.btnStopStreamNRX.clicked.connect(self.stop_stream_nrx)
 
-        layout.addWidget(self.nrxPowerLabel, 1, 0, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(
+            self.nrxPowerLabel, 1, 0, alignment=Qt.AlignmentFlag.AlignCenter
+        )
         layout.addWidget(self.nrxPower, 2, 0, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.btnStartStreamNRX, 3, 0, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.btnStopStreamNRX, 3, 1, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(
+            self.btnStartStreamNRX, 3, 0, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        layout.addWidget(
+            self.btnStopStreamNRX, 3, 1, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.groupNRX.setLayout(layout)
 
@@ -145,10 +152,18 @@ class MeasureTabWidget(QWidget):
         self.btnKeithleyVoltageSet = QPushButton("Set voltage")
         self.btnKeithleyVoltageSet.clicked.connect(self.keithley_set_voltage)
 
-        layout.addWidget(self.keithleyVoltageGetLabel, 1, 0, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.keithleyCurrentGetLabel, 1, 1, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.keithleyVoltageGet, 2, 0, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.keithleyCurrentGet, 2, 1, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(
+            self.keithleyVoltageGetLabel, 1, 0, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        layout.addWidget(
+            self.keithleyCurrentGetLabel, 1, 1, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        layout.addWidget(
+            self.keithleyVoltageGet, 2, 0, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        layout.addWidget(
+            self.keithleyCurrentGet, 2, 1, alignment=Qt.AlignmentFlag.AlignCenter
+        )
         layout.addWidget(self.btnStartStreamKeithley, 3, 0)
         layout.addWidget(self.btnStopStreamKeithley, 3, 1)
         layout.addWidget(self.keithleyVoltageSetLabel, 4, 0)
@@ -167,14 +182,24 @@ class MeasureTabWidget(QWidget):
 
         config.KEITHLEY_CURRENT_SET = self.keithleyCurrentSet.value()
 
-        self.keithley_set_current_thread.started.connect(self.keithley_set_current_worker.run)
-        self.keithley_set_current_worker.finished.connect(self.keithley_set_current_thread.quit)
-        self.keithley_set_current_worker.finished.connect(self.keithley_set_current_worker.deleteLater)
-        self.keithley_set_current_thread.finished.connect(self.keithley_set_current_thread.deleteLater)
+        self.keithley_set_current_thread.started.connect(
+            self.keithley_set_current_worker.run
+        )
+        self.keithley_set_current_worker.finished.connect(
+            self.keithley_set_current_thread.quit
+        )
+        self.keithley_set_current_worker.finished.connect(
+            self.keithley_set_current_worker.deleteLater
+        )
+        self.keithley_set_current_thread.finished.connect(
+            self.keithley_set_current_thread.deleteLater
+        )
         self.keithley_set_current_thread.start()
 
         self.btnKeithleyCurrentSet.setEnabled(False)
-        self.keithley_set_current_thread.finished.connect(lambda: self.btnKeithleyCurrentSet.setEnabled(True))
+        self.keithley_set_current_thread.finished.connect(
+            lambda: self.btnKeithleyCurrentSet.setEnabled(True)
+        )
 
     def keithley_set_voltage(self):
         self.keithley_set_voltage_thread = QThread()
@@ -183,14 +208,24 @@ class MeasureTabWidget(QWidget):
 
         config.KEITHLEY_VOLTAGE_SET = self.keithleyVoltageSet.value()
 
-        self.keithley_set_voltage_thread.started.connect(self.keithley_set_voltage_worker.run)
-        self.keithley_set_voltage_worker.finished.connect(self.keithley_set_voltage_thread.quit)
-        self.keithley_set_voltage_worker.finished.connect(self.keithley_set_voltage_worker.deleteLater)
-        self.keithley_set_voltage_thread.finished.connect(self.keithley_set_voltage_thread.deleteLater)
+        self.keithley_set_voltage_thread.started.connect(
+            self.keithley_set_voltage_worker.run
+        )
+        self.keithley_set_voltage_worker.finished.connect(
+            self.keithley_set_voltage_thread.quit
+        )
+        self.keithley_set_voltage_worker.finished.connect(
+            self.keithley_set_voltage_worker.deleteLater
+        )
+        self.keithley_set_voltage_thread.finished.connect(
+            self.keithley_set_voltage_thread.deleteLater
+        )
         self.keithley_set_voltage_thread.start()
 
         self.btnKeithleyVoltageSet.setEnabled(False)
-        self.keithley_set_voltage_thread.finished.connect(lambda: self.btnKeithleyVoltageSet.setEnabled(True))
+        self.keithley_set_voltage_thread.finished.connect(
+            lambda: self.btnKeithleyVoltageSet.setEnabled(True)
+        )
 
     def start_stream_keithley(self):
         self.keithley_stream_thread = QThread()
@@ -201,17 +236,29 @@ class MeasureTabWidget(QWidget):
 
         self.keithley_stream_thread.started.connect(self.keithley_stream_worker.run)
         self.keithley_stream_worker.finished.connect(self.keithley_stream_thread.quit)
-        self.keithley_stream_worker.finished.connect(self.keithley_stream_worker.deleteLater)
-        self.keithley_stream_thread.finished.connect(self.keithley_stream_thread.deleteLater)
-        self.keithley_stream_worker.current_get.connect(lambda x: self.keithleyCurrentGet.setText(f"{round(x, 4)}"))
-        self.keithley_stream_worker.voltage_get.connect(lambda x: self.keithleyVoltageGet.setText(f"{round(x, 4)}"))
+        self.keithley_stream_worker.finished.connect(
+            self.keithley_stream_worker.deleteLater
+        )
+        self.keithley_stream_thread.finished.connect(
+            self.keithley_stream_thread.deleteLater
+        )
+        self.keithley_stream_worker.current_get.connect(
+            lambda x: self.keithleyCurrentGet.setText(f"{round(x, 4)}")
+        )
+        self.keithley_stream_worker.voltage_get.connect(
+            lambda x: self.keithleyVoltageGet.setText(f"{round(x, 4)}")
+        )
         self.keithley_stream_thread.start()
 
         self.btnStartStreamKeithley.setEnabled(False)
-        self.keithley_stream_thread.finished.connect(lambda: self.btnStartStreamKeithley.setEnabled(True))
+        self.keithley_stream_thread.finished.connect(
+            lambda: self.btnStartStreamKeithley.setEnabled(True)
+        )
 
         self.btnStopStreamKeithley.setEnabled(True)
-        self.keithley_stream_thread.finished.connect(lambda: self.btnStopStreamKeithley.setEnabled(False))
+        self.keithley_stream_thread.finished.connect(
+            lambda: self.btnStopStreamKeithley.setEnabled(False)
+        )
 
     def stop_stream_keithley(self):
         config.KEITHLEY_STREAM = False
@@ -227,16 +274,20 @@ class MeasureTabWidget(QWidget):
         self.nrx_stream_worker.finished.connect(self.nrx_stream_thread.quit)
         self.nrx_stream_worker.finished.connect(self.nrx_stream_worker.deleteLater)
         self.nrx_stream_thread.finished.connect(self.nrx_stream_thread.deleteLater)
-        self.nrx_stream_worker.power.connect(lambda x: self.nrxPower.setText(f"{round(x, 3)}"))
+        self.nrx_stream_worker.power.connect(
+            lambda x: self.nrxPower.setText(f"{round(x, 3)}")
+        )
         self.nrx_stream_thread.start()
 
         self.btnStartStreamNRX.setEnabled(False)
-        self.nrx_stream_thread.finished.connect(lambda: self.btnStartStreamNRX.setEnabled(True))
+        self.nrx_stream_thread.finished.connect(
+            lambda: self.btnStartStreamNRX.setEnabled(True)
+        )
 
         self.btnStopStreamNRX.setEnabled(True)
-        self.nrx_stream_thread.finished.connect(lambda: self.btnStopStreamNRX.setEnabled(False))
+        self.nrx_stream_thread.finished.connect(
+            lambda: self.btnStopStreamNRX.setEnabled(False)
+        )
 
     def stop_stream_nrx(self):
         config.NRX_STREAM = False
-
-

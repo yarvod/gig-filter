@@ -6,18 +6,8 @@ class Config:
     KEITHLEY_VOLTAGE_SET = 0
     KEITHLEY_STREAM = False
     KEITHLEY_OUTPUT_STATE = "0"
-    KEITHLEY_OUTPUT_STATE_MAP = dict(
-        (
-            ("0", "Off"),
-            ("1", "On")
-        )
-    )
-    KEITHLEY_OUTPUT_STATE_MAP_REVERSE = dict(
-        (
-            ("On", "0"),
-            ("Off", "1")
-        )
-    )
+    KEITHLEY_OUTPUT_STATE_MAP = dict((("0", "Off"), ("1", "On")))
+    KEITHLEY_OUTPUT_STATE_MAP_REVERSE = dict((("On", "0"), ("Off", "1")))
 
     KEITHLEY_TEST_MAP = dict(
         (

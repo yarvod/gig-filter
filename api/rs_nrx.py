@@ -6,7 +6,6 @@ from utils.logger import logger
 
 
 class NRXBlock:
-
     def __init__(self, ip: str = config.NRX_IP, avg_time: float = config.NRX_AVG_TIME):
         self.address = f"TCPIP::{ip}::INSTR"
         self.instr = None
