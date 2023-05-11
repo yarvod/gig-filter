@@ -52,6 +52,12 @@ class NRXBlock:
     def fetch(self):
         return self.instr.query_float("FETCH?")
 
+    def set_lower_limit(self, limit: float):
+        self.instr.write(f"CALCulate1:LIMit1:LOWer:DATA {limit}")
+
+    def set_upper_limit(self, limit: float):
+        self.instr.write(f"CALCulate1:LIMit1:UPPer:DATA {limit}")
+
 
 if __name__ == "__main__":
     nrx = NRXBlock()
