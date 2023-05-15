@@ -9,3 +9,4 @@ pyqtgraph==0.13.2
 RsInstrument==1.53.0
 PyVisa==1.13.0
 pyvisa-py==0.6.3
+pyserial==3.5
