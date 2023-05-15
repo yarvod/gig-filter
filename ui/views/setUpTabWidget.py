@@ -50,7 +50,11 @@ class NRXBlockWorker(QObject):
     status = pyqtSignal(str)
 
     def run(self):
-        block = NRXBlock(ip=config.NRX_IP, avg_time=config.NRX_AVG_TIME)
+        block = NRXBlock(
+            ip=config.NRX_IP,
+            avg_time=config.NRX_FILTER_TIME,
+            aper_time=config.NRX_APER_TIME,
+        )
         result = block.test()
         block.close()
         self.status.emit(config.NRX_TEST_MAP.get(result, "Error"))
@@ -76,10 +80,17 @@ class SetUpTabWidget(QWidget):
         self.nrxIP = QLineEdit(self)
         self.nrxIP.setText(config.NRX_IP)
 
-        self.nrxAvgTimeLabel = QLabel(self)
-        self.nrxAvgTimeLabel.setText("NRX Avg time, s:")
-        self.nrxAvgTime = QDoubleSpinBox(self)
-        self.nrxAvgTime.setRange(0.01, 1000)
+        self.nrxFilterTimeLabel = QLabel(self)
+        self.nrxFilterTimeLabel.setText("NRX Filter time, s:")
+        self.nrxFilterTime = QDoubleSpinBox(self)
+        self.nrxFilterTime.setRange(0.01, 1000)
+
+        self.nrxAperTimeLabel = QLabel(self)
+        self.nrxAperTimeLabel.setText("NRX Aperture time, s:")
+        self.nrxAperTime = QDoubleSpinBox(self)
+        self.nrxAperTime.setDecimals(5)
+        self.nrxAperTime.setRange(1e-5, 1000)
+        self.nrxAperTime.setValue(config.NRX_APER_TIME)
 
         self.nrxStatusLabel = QLabel(self)
         self.nrxStatusLabel.setText("NRX status:")
@@ -91,11 +102,13 @@ class SetUpTabWidget(QWidget):
 
         layout.addWidget(self.nrxIPLabel, 1, 0)
         layout.addWidget(self.nrxIP, 1, 1)
-        layout.addWidget(self.nrxAvgTimeLabel, 2, 0)
-        layout.addWidget(self.nrxAvgTime, 2, 1)
-        layout.addWidget(self.nrxStatusLabel, 3, 0)
-        layout.addWidget(self.nrxStatus, 3, 1)
-        layout.addWidget(self.btnInitNRX, 4, 0, 1, 2)
+        layout.addWidget(self.nrxFilterTimeLabel, 2, 0)
+        layout.addWidget(self.nrxFilterTime, 2, 1)
+        layout.addWidget(self.nrxAperTimeLabel, 3, 0)
+        layout.addWidget(self.nrxAperTime, 3, 1)
+        layout.addWidget(self.nrxStatusLabel, 4, 0)
+        layout.addWidget(self.nrxStatus, 4, 1)
+        layout.addWidget(self.btnInitNRX, 5, 0, 1, 2)
 
         self.groupNRX.setLayout(layout)
 
@@ -172,7 +185,8 @@ class SetUpTabWidget(QWidget):
         self.nrx_worker = NRXBlockWorker()
 
         config.NRX_IP = self.nrxIP.text()
-        config.NRX_AVG_TIME = self.nrxAvgTime.value()
+        config.NRX_FILTER_TIME = self.nrxFilterTime.value()
+        config.NRX_APER_TIME = self.nrxAperTime.value()
 
         self.nrx_worker.moveToThread(self.nrx_thread)
         self.nrx_thread.started.connect(self.nrx_worker.run)

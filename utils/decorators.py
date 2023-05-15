@@ -23,7 +23,12 @@ def visa_exception(func):
         for attempt in range(1, 5):
             try:
                 return func(*args, **kwargs)
-            except (pyvisa.errors.VisaIOError, TypeError, ValueError, AttributeError) as e:
+            except (
+                pyvisa.errors.VisaIOError,
+                TypeError,
+                ValueError,
+                AttributeError,
+            ) as e:
                 logger.error(f"[Attempt {attempt}][{func.__qualname__}] {e}")
 
     return wrapper

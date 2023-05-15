@@ -36,7 +36,8 @@ class Config:
             ("1", "Error"),
         )
     )
-    NRX_AVG_TIME = 0.01
+    NRX_FILTER_TIME = 0.01
+    NRX_APER_TIME = 0.1
 
 
 config = Config()

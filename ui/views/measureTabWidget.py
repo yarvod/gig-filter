@@ -10,7 +10,8 @@ from PyQt6.QtWidgets import (
     QGridLayout,
     QLabel,
     QPushButton,
-    QDoubleSpinBox, QFileDialog,
+    QDoubleSpinBox,
+    QFileDialog,
 )
 
 from api.keithley_power_supply import KeithleyBlock
@@ -26,7 +27,7 @@ class MeasureWorker(QObject):
 
     def run(self):
         keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
-        nrx = NRXBlock(ip=config.NRX_IP, avg_time=config.NRX_AVG_TIME)
+        nrx = NRXBlock(ip=config.NRX_IP, avg_time=config.NRX_FILTER_TIME)
 
         results = {
             "current_set": [],
@@ -34,7 +35,11 @@ class MeasureWorker(QObject):
             "voltage_get": [],
             "power": [],
         }
-        current_range = np.linspace(config.KEITHLEY_CURRENT_FROM, config.KEITHLEY_CURRENT_TO, int(config.KEITHLEY_CURRENT_POINTS))
+        current_range = np.linspace(
+            config.KEITHLEY_CURRENT_FROM,
+            config.KEITHLEY_CURRENT_TO,
+            int(config.KEITHLEY_CURRENT_POINTS),
+        )
 
         for step, current in enumerate(current_range, 1):
             if not config.KEITHLEY_MEAS:
@@ -111,24 +116,16 @@ class MeasureTabWidget(QWidget):
 
         self.meas_thread.started.connect(self.meas_worker.run)
         self.meas_worker.finished.connect(self.meas_thread.quit)
-        self.meas_worker.finished.connect(
-            self.meas_worker.deleteLater
-        )
-        self.meas_thread.finished.connect(
-            self.meas_thread.deleteLater
-        )
+        self.meas_worker.finished.connect(self.meas_worker.deleteLater)
+        self.meas_thread.finished.connect(self.meas_thread.deleteLater)
         self.meas_worker.results.connect(self.save_meas)
         self.meas_thread.start()
 
         self.btnStartMeas.setEnabled(False)
-        self.meas_thread.finished.connect(
-            lambda: self.btnStartMeas.setEnabled(True)
-        )
+        self.meas_thread.finished.connect(lambda: self.btnStartMeas.setEnabled(True))
 
         self.btnStopMeas.setEnabled(True)
-        self.meas_thread.finished.connect(
-            lambda: self.btnStopMeas.setEnabled(False)
-        )
+        self.meas_thread.finished.connect(lambda: self.btnStopMeas.setEnabled(False))
 
     def stop_meas(self):
         config.KEITHLEY_MEAS = False
@@ -140,5 +137,3 @@ class MeasureTabWidget(QWidget):
             df.to_csv(filepath)
         except (IndexError, FileNotFoundError):
             pass
-
-

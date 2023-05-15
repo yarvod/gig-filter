@@ -6,12 +6,18 @@ from utils.logger import logger
 
 
 class NRXBlock:
-    def __init__(self, ip: str = config.NRX_IP, avg_time: float = config.NRX_AVG_TIME):
+    def __init__(
+        self,
+        ip: str = config.NRX_IP,
+        avg_time: float = config.NRX_FILTER_TIME,
+        aper_time: float = config.NRX_APER_TIME,
+    ):
         self.address = f"TCPIP::{ip}::INSTR"
         self.instr = None
 
         self.open_instrument()
         self.set_averaging_time(avg_time)
+        self.set_aperture_time(aper_time)
 
     @exception
     def open_instrument(self):
@@ -61,15 +67,22 @@ class NRXBlock:
         self.instr.write(f"CALCulate1:LIMit1:UPPer:DATA {limit}")
 
     @exception
-    def set_averaging_time(self, time: float = config.NRX_AVG_TIME):
+    def set_averaging_time(self, time: float = config.NRX_FILTER_TIME):
         """
         :param time: seconds
         :return:
         """
         self.instr.write(f"CALCulate:CHANnel:AVERage:COUNt:AUTO:MTIMe {time}")
 
+    @exception
+    def set_aperture_time(self, time: float = config.NRX_APER_TIME):
+        """
+        :param time: seconds
+        :return:
+        """
+        self.instr.write(f"CALC:APER {time}")
+
 
 if __name__ == "__main__":
     nrx = NRXBlock()
-    for i in range(10):
-        print(nrx.meas())
+    nrx.instr.write(f"CALC:APER 0.2")
