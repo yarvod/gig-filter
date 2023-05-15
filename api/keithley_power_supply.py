@@ -1,19 +1,12 @@
-import pyvisa
-
+from api.prologixUsb import PrologixGPIBUsb
 from config import config
 from utils.decorators import visa_exception
-from utils.logger import logger
 
 
 class KeithleyBlock:
-    def __init__(self, address: str = config.KEITHLEY_ADDRESS):
+    def __init__(self, port_number: int = config.PROLOGIX_ADDRESS, address: int = config.KEITHLEY_ADDRESS):
         self.address = address
-        resource_manager = pyvisa.ResourceManager()
-        try:
-            self.instr = resource_manager.open_resource(self.address)
-        except pyvisa.errors.VisaIOError as e:
-            self.instr = None
-            logger.error(f"[KeithleyBlock.__init__] Initialization error {e}")
+        self.instr = PrologixGPIBUsb(port_number, address)
 
     @visa_exception
     def idn(self):

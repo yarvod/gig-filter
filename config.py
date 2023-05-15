@@ -1,5 +1,6 @@
 class Config:
-    KEITHLEY_ADDRESS = "GPIB0::22::INSTR"
+    PROLOGIX_ADDRESS = 6
+    KEITHLEY_ADDRESS = 22
     NRX_IP = "169.254.2.20"
 
     KEITHLEY_MEAS = False

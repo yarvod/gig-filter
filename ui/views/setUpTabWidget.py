@@ -118,8 +118,10 @@ class SetUpTabWidget(QWidget):
 
         self.keithleyAddressLabel = QLabel(self)
         self.keithleyAddressLabel.setText("Keithley address:")
-        self.keithleyAddress = QLineEdit(self)
-        self.keithleyAddress.setText(config.KEITHLEY_ADDRESS)
+        self.keithleyAddress = QDoubleSpinBox(self)
+        self.keithleyAddress.setRange(0, 31)
+        self.keithleyAddress.setDecimals(0)
+        self.keithleyAddress.setValue(config.KEITHLEY_ADDRESS)
 
         self.keithleyStatusLabel = QLabel(self)
         self.keithleyStatusLabel.setText("Keithley status:")
@@ -206,7 +208,7 @@ class SetUpTabWidget(QWidget):
         self.keithley_thread = QThread()
         self.keithley_worker = KeithleyWorker()
 
-        config.KEITHLEY_ADDRESS = self.keithleyAddress.text()
+        config.KEITHLEY_ADDRESS = int(self.keithleyAddress.value())
 
         self.keithley_worker.moveToThread(self.keithley_thread)
         self.keithley_thread.started.connect(self.keithley_worker.run)
