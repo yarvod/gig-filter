@@ -53,7 +53,6 @@ class MeasureWorker(QObject):
             proc = round(step / config.KEITHLEY_CURRENT_POINTS * 100, 2)
             logger.info(f"[{proc} %]")
 
-        keithley.close()
         nrx.close()
         self.results.emit(results)
         self.finished.emit()

@@ -27,7 +27,6 @@ class KeithleyWorker(QObject):
         keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
         result = keithley.test()
         status = config.KEITHLEY_TEST_MAP.get(result, "Undefined Error")
-        keithley.close()
         self.status.emit(status)
         self.finished.emit()
 
@@ -40,7 +39,6 @@ class KeithleyOutputWorker(QObject):
         keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
         result = keithley.set_output_state(state=config.KEITHLEY_OUTPUT_STATE)
         state = keithley.get_output_state()
-        keithley.close()
         self.state.emit(state)
         self.finished.emit()
 

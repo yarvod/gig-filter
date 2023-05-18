@@ -34,7 +34,6 @@ class KeithleyStreamWorker(QObject):
             voltage_get = self.keithley.get_voltage()
             self.voltage_get.emit(voltage_get)
 
-        self.keithley.close()
         self.finished.emit()
 
 
@@ -45,7 +44,6 @@ class KeithleySetCurrentWorker(QObject):
     def run(self):
         self.keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
         self.keithley.set_current(config.KEITHLEY_CURRENT_SET)
-        self.keithley.close()
         self.finished.emit()
 
 
@@ -56,7 +54,6 @@ class KeithleySetVoltageWorker(QObject):
     def run(self):
         self.keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
         self.keithley.set_voltage(config.KEITHLEY_VOLTAGE_SET)
-        self.keithley.close()
         self.finished.emit()
 
 

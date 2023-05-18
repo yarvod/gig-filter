@@ -14,7 +14,9 @@ class VisaGPIB:
             self.resource = self.resource_manager.open_resource(self.address)
         except pyvisa.errors.VisaIOError as e:
             self.resource = None
-            logger.error(f"[{self.__class__.__name__}.__init__] Initialization error {e}")
+            logger.error(
+                f"[{self.__class__.__name__}.__init__] Initialization error {e}"
+            )
 
     def query(self, cmd: str):
         return self.resource.query(cmd)

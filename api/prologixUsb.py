@@ -2,35 +2,35 @@ import serial
 import sys
 import time
 
+from utils.classes import Singleton
 from utils.logger import logger
 
 
 def main():
-    gp = PrologixGPIBUsb(int(sys.argv[1]), 22)
+    gp = PrologixGPIBUsb(int(sys.argv[1]))
     gp.scan(silence=False)
 
-    print(gp.query("*IDN?"))
+    print(gp.query("*IDN?", int(sys.argv[2])))
     return
 
 
-class PrologixGPIBUsb:
+class PrologixGPIBUsb(metaclass=Singleton):
     resource = None
     opened = False
     eq_list = []
 
-    def __init__(self, port_number: int, address: int):
+    def __init__(self, port_number: int):
         self.port_number = port_number
         if (self.resource is None) or (not self.resource.isOpen()):
             self.opened = self.init_gpib_card()
-        self.eq_addr = address
         return
 
     def scan(self, silence=True):
         self.eq_list = self.scan_eq(self.resource, silence=silence)
         return
 
-    def lock(self):
-        self.resource.write(("++addr {}\n".format(self.eq_addr)).encode())
+    def lock(self, eq_addr):
+        self.resource.write(("++addr {}\n".format(eq_addr)).encode())
         self.resource.write("++llo\n".encode())
         return
 
@@ -55,26 +55,23 @@ class PrologixGPIBUsb:
         self.resource.write("++read_tmo_ms 300\n".encode())
         return
 
-    def find_model_gpib(self):
+    def find_model_gpib(self, eq_addr):
         model = ""
-        eq_info = self.query("*IDN?")
+        eq_info = self.query("*IDN?", eq_addr)
         if eq_info != "":
             model = eq_info.split(",")[1].strip()
         return model
 
-    def command(self, cmd, delay=0.0):
-        self.resource.write(("++addr {}\n".format(self.eq_addr)).encode())
+    def command(self, cmd, eq_addr: int):
+        self.resource.write(("++addr {}\n".format(eq_addr)).encode())
         self.resource.write((cmd + "\n").encode())
-        if delay != 0.0:
-            time.sleep(delay)
         return
 
-    def write(self, cmd: str, delay: float = 0.0):
-        return self.command(cmd, delay)
+    def write(self, cmd: str, eq_addr: int):
+        return self.command(cmd, eq_addr)
 
-    def query(self, cmd, delay: float = 0.0):
-        self.command(cmd, delay)
-        time.sleep(delay)
+    def query(self, cmd: str, eq_addr: int):
+        self.command(cmd, eq_addr)
         self.resource.write("++read eoi\n".encode())
         ans = (self.resource.readline().decode()).strip()
         return ans
@@ -94,19 +91,22 @@ class PrologixGPIBUsb:
 
         if "Prologix GPIB-USB Controller" in ans:
             self.init_cfg()
-            logger.info("[{}.init_gpib_card]COM{}: {}".format(self.__class__.__name__, self.port_number, ans))
+            logger.info(
+                "[{}.init_gpib_card]COM{}: {}".format(
+                    self.__class__.__name__, self.port_number, ans
+                )
+            )
         else:
             logger.info(
                 "[{}.init_gpib_card]COM{} is NOT GPIB interface. Please check port number.".format(
-                    self.__class__.__name__,
-                    self.port_number
+                    self.__class__.__name__, self.port_number
                 )
             )
             return False
         return True
 
-    def gpib_release(self):
-        self.command("++loc")
+    def gpib_release(self, eq_addr: int):
+        self.command("++loc", eq_addr)
         return
 
     def port_close(self):
@@ -116,12 +116,12 @@ class PrologixGPIBUsb:
     def scan_eq(self, gpib_ser, silence=False):
         eq_list = []
         for eq_addr in range(1, 31):
-            id_in = self.query("*IDN?", delay=0.1)
+            id_in = self.query("*IDN?", eq_addr)
             if id_in != "":
                 if not silence:
                     logger.info("Address {}:\t".format(eq_addr) + id_in)
                 eq_list.append((eq_addr, id_in))
-                self.gpib_release()
+                self.gpib_release(eq_addr)
             else:
                 if not silence:
                     logger.info("Address {}: \tnothing found.".format(eq_addr))
@@ -129,7 +129,7 @@ class PrologixGPIBUsb:
         return eq_list
 
     def add(self, eq_addr):
-        id_in = self.query("*IDN?")
+        id_in = self.query("*IDN?", eq_addr)
         if id_in != "":
             logger.info("Address {}:\t".format(eq_addr) + id_in)
             self.eq_list.append((eq_addr, id_in))
@@ -140,7 +140,9 @@ class PrologixGPIBUsb:
 
     def close(self):
         self.resource.close()
-        logger.info(f"[{self.__class__.__name__}.close]GPIB adaptor has been reset and COM port has been closed.")
+        logger.info(
+            f"[{self.__class__.__name__}.close]GPIB adaptor has been reset and COM port has been closed."
+        )
         self.opened = False
         return
 
