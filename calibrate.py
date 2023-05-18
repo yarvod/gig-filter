@@ -24,9 +24,9 @@ results = {
     "freq": [],
 }
 curr_from = 2.65e-2
-curr_to = 3.7e-1
+curr_to = 2.4e-1
 curr_num = 30
-voltage = 6
+voltage = 3.5
 freq_limit = 12e9
 
 dc_block.set_voltage(voltage)
