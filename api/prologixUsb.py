@@ -72,7 +72,7 @@ class PrologixGPIBUsb:
     def write(self, cmd: str, delay: float = 0.0):
         return self.command(cmd, delay)
 
-    def query(self, cmd, delay=0.1):
+    def query(self, cmd, delay: float = 0.0):
         self.command(cmd, delay)
         time.sleep(delay)
         self.resource.write("++read eoi\n".encode())
