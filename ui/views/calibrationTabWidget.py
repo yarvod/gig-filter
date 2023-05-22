@@ -52,8 +52,9 @@ class CalibrateWorker(QObject):
             if not config.CALIBRATION_MEAS:
                 break
             dc_block.set_current(current)
+            time.sleep(0.1)
             if step == 1:
-                time.sleep(0.5)
+                time.sleep(0.4)
             current_get = dc_block.get_current()
             voltage_get = dc_block.get_voltage()
             s_block.peak_search()

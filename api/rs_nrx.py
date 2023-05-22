@@ -16,7 +16,7 @@ class NRXBlock:
         self.instr = None
 
         self.open_instrument()
-        self.set_averaging_time(avg_time)
+        self.set_awaiting_time(avg_time)
         self.set_aperture_time(aper_time)
 
     @exception
@@ -67,7 +67,7 @@ class NRXBlock:
         self.instr.write(f"CALCulate1:LIMit1:UPPer:DATA {limit}")
 
     @exception
-    def set_averaging_time(self, time: float = config.NRX_FILTER_TIME):
+    def set_awaiting_time(self, time: float = config.NRX_FILTER_TIME):
         """
         :param time: seconds
         :return:
