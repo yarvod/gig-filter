@@ -31,7 +31,11 @@ class MeasureWorker(QObject):
 
     def run(self):
         keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
-        nrx = NRXBlock(ip=config.NRX_IP, avg_time=config.NRX_FILTER_TIME)
+        nrx = NRXBlock(
+            ip=config.NRX_IP,
+            filter_time=config.NRX_FILTER_TIME,
+            aperture_time=config.NRX_APER_TIME,
+        )
 
         results = {
             "current_set": [],

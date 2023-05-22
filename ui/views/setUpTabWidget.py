@@ -50,8 +50,8 @@ class NRXBlockWorker(QObject):
     def run(self):
         block = NRXBlock(
             ip=config.NRX_IP,
-            avg_time=config.NRX_FILTER_TIME,
-            aper_time=config.NRX_APER_TIME,
+            filter_time=config.NRX_FILTER_TIME,
+            aperture_time=config.NRX_APER_TIME,
         )
         result = block.test()
         block.close()

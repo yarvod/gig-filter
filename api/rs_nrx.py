@@ -9,15 +9,16 @@ class NRXBlock:
     def __init__(
         self,
         ip: str = config.NRX_IP,
-        avg_time: float = config.NRX_FILTER_TIME,
-        aper_time: float = config.NRX_APER_TIME,
+        aperture_time: float = config.NRX_APER_TIME,
+        filter_time: float = config.NRX_FILTER_TIME,
     ):
         self.address = f"TCPIP::{ip}::INSTR"
         self.instr = None
 
         self.open_instrument()
-        self.set_awaiting_time(avg_time)
-        self.set_aperture_time(aper_time)
+        # self.set_filter_time(filter_time)
+        self.set_filter_state(0)
+        self.set_aperture_time(aperture_time)
 
     @exception
     def open_instrument(self):
@@ -67,7 +68,12 @@ class NRXBlock:
         self.instr.write(f"CALCulate1:LIMit1:UPPer:DATA {limit}")
 
     @exception
-    def set_awaiting_time(self, time: float = config.NRX_FILTER_TIME):
+    def set_filter_state(self, state: int = 0):
+        """Filter state: On - 1, Off - 0"""
+        self.instr.write(f"CALC:CHAN:AVER:STAT {state}")
+
+    @exception
+    def set_filter_time(self, time: float = config.NRX_FILTER_TIME):
         """
         :param time: seconds
         :return:
