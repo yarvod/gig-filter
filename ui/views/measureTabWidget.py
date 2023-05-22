@@ -108,7 +108,6 @@ class MeasureTabWidget(QWidget):
         self.keithleyCurrentFromLabel = QLabel("0 [A]")
         self.keithleyCurrentToLabel = QLabel("0 [A]")
 
-
         self.keithleyCurrentPointsLabel = QLabel("Points count")
         self.keithleyCurrentPoints = QDoubleSpinBox(self)
         self.keithleyCurrentPoints.setRange(0, 1001)
@@ -170,10 +169,18 @@ class MeasureTabWidget(QWidget):
             pass
 
     def freq2curr(self):
-        config.KEITHLEY_CURRENT_FROM = linear(self.keithleyFreqFrom.value() * 1e9, *config.CALIBRATION_FREQ_2_CURR)
-        config.KEITHLEY_CURRENT_TO = linear(self.keithleyFreqTo.value() * 1e9, *config.CALIBRATION_FREQ_2_CURR)
-        self.keithleyCurrentFromLabel.setText(f"{round(config.KEITHLEY_CURRENT_FROM, 4)} [A]")
-        self.keithleyCurrentToLabel.setText(f"{round(config.KEITHLEY_CURRENT_TO, 4)} [A]")
+        config.KEITHLEY_CURRENT_FROM = linear(
+            self.keithleyFreqFrom.value() * 1e9, *config.CALIBRATION_FREQ_2_CURR
+        )
+        config.KEITHLEY_CURRENT_TO = linear(
+            self.keithleyFreqTo.value() * 1e9, *config.CALIBRATION_FREQ_2_CURR
+        )
+        self.keithleyCurrentFromLabel.setText(
+            f"{round(config.KEITHLEY_CURRENT_FROM, 4)} [A]"
+        )
+        self.keithleyCurrentToLabel.setText(
+            f"{round(config.KEITHLEY_CURRENT_TO, 4)} [A]"
+        )
 
     def show_measure_graph_window(self, results: dict):
         if self.measureGraphWindow is None:

@@ -144,23 +144,29 @@ class CalibrationTabWidget(QWidget):
         self.calibration_worker.finished.connect(self.calibration_thread.quit)
         self.calibration_worker.finished.connect(self.calibration_worker.deleteLater)
         self.calibration_thread.finished.connect(self.calibration_thread.deleteLater)
-        self.calibration_worker.stream_result.connect(self.show_calibration_graph_window)
+        self.calibration_worker.stream_result.connect(
+            self.show_calibration_graph_window
+        )
         self.calibration_worker.results.connect(self.save_calibration)
         self.calibration_thread.start()
 
         self.btnStartMeas.setEnabled(False)
-        self.calibration_thread.finished.connect(lambda: self.btnStartMeas.setEnabled(True))
+        self.calibration_thread.finished.connect(
+            lambda: self.btnStartMeas.setEnabled(True)
+        )
 
         self.btnStopMeas.setEnabled(True)
-        self.calibration_thread.finished.connect(lambda: self.btnStopMeas.setEnabled(False))
+        self.calibration_thread.finished.connect(
+            lambda: self.btnStopMeas.setEnabled(False)
+        )
 
     def stop_calibration(self):
         config.CALIBRATION_MEAS = False
 
     def save_calibration(self, results: dict):
         fun = lambda x, a, b: a * x + b
-        opt_1, cov_1 = curve_fit(fun, results['freq'], results['current_get'])
-        opt_2, cov_2 = curve_fit(fun, results['current_get'], results['freq'])
+        opt_1, cov_1 = curve_fit(fun, results["freq"], results["current_get"])
+        opt_2, cov_2 = curve_fit(fun, results["current_get"], results["freq"])
         config.CALIBRATION_FREQ_2_CURR = list(opt_1)
         config.CALIBRATION_CURR_2_FREQ = list(opt_2)
         try:
