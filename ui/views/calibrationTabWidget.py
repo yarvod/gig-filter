@@ -208,8 +208,8 @@ class CalibrationTabWidget(QWidget):
     def calibrate(self):
         calibration = pd.read_csv(config.CALIBRATION_FILE)
         fun = lambda x, a, b: a * x + b
-        opt_1, cov_1 = curve_fit(fun, calibration["freq"], calibration["current_get"])
-        opt_2, cov_2 = curve_fit(fun, calibration["current_get"], calibration["freq"])
+        opt_1, cov_1 = curve_fit(fun, calibration["frequency"], calibration["current"])
+        opt_2, cov_2 = curve_fit(fun, calibration["current"], calibration["frequency"])
         config.CALIBRATION_FREQ_2_CURR = list(opt_1)
         config.CALIBRATION_CURR_2_FREQ = list(opt_2)
 
