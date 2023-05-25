@@ -1,3 +1,6 @@
+import os
+
+
 class Config:
     PROLOGIX_ADDRESS = 6
     KEITHLEY_ADDRESS = 22
@@ -47,6 +50,7 @@ class Config:
 
     CALIBRATION_CURR_2_FREQ = [3.48259668e10, 1.38445743e08]
     CALIBRATION_FREQ_2_CURR = [2.86680058e-11, -3.77437270e-03]
+    CALIBRATION_FILE = os.getcwd() + '\calibration.csv'
 
 
 config = Config()

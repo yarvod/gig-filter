@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 import numpy as np
@@ -90,7 +91,9 @@ class CalibrationTabWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.calibrationGraphWindow = None
         self.createGroupCalibration()
+        self.createGroupCalibrationFiles()
         self.layout.addWidget(self.groupCalibration, alignment=Qt.AlignmentFlag.AlignTop)
+        self.layout.addWidget(self.groupCalibrationFiles)
         self.setLayout(self.layout)
 
     def createGroupCalibration(self):
@@ -131,6 +134,24 @@ class CalibrationTabWidget(QWidget):
 
         self.groupCalibration.setLayout(layout)
 
+    def createGroupCalibrationFiles(self):
+        self.groupCalibrationFiles = QGroupBox("Calibration files")
+        self.groupCalibrationFiles.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        layout = QGridLayout()
+
+        self.calibrationFilePath = QLabel(f"{config.CALIBRATION_FILE}")
+        self.btnChooseCalibrationFile = QPushButton("Choose file")
+        self.btnChooseCalibrationFile.clicked.connect(self.chooseCalibrationFile)
+
+        self.btnCalibrate = QPushButton("Calibrate")
+        self.btnCalibrate.clicked.connect(self.calibrate)
+
+        layout.addWidget(self.calibrationFilePath, 1, 0)
+        layout.addWidget(self.btnChooseCalibrationFile, 1, 1)
+        layout.addWidget(self.btnCalibrate, 2, 0, 2, 0)
+
+        self.groupCalibrationFiles.setLayout(layout)
+
     def start_calibration(self):
         self.calibration_thread = QThread()
         self.calibration_worker = CalibrateWorker()
@@ -166,16 +187,31 @@ class CalibrationTabWidget(QWidget):
 
     def save_calibration(self, results: dict):
         fun = lambda x, a, b: a * x + b
-        opt_1, cov_1 = curve_fit(fun, results["freq"], results["current_get"])
-        opt_2, cov_2 = curve_fit(fun, results["current_get"], results["freq"])
+        opt_1, cov_1 = curve_fit(fun, results["frequency"], results["current"])
+        opt_2, cov_2 = curve_fit(fun, results["current"], results["frequency"])
         config.CALIBRATION_FREQ_2_CURR = list(opt_1)
         config.CALIBRATION_CURR_2_FREQ = list(opt_2)
         try:
             filepath = QFileDialog.getSaveFileName(caption="Save calibration file")[0]
-            df = pd.DataFrame(results)
+            df = pd.DataFrame({"frequency": results["freq"], "current": results["current_get"]})
             df.to_csv(filepath)
         except (IndexError, FileNotFoundError):
             pass
+
+    def chooseCalibrationFile(self):
+        try:
+            filepath = QFileDialog.getOpenFileName(caption="Save calibration file")[0]
+            self.calibrationFilePath.setText(f"{filepath}")
+        except (IndexError, FileNotFoundError):
+            return
+
+    def calibrate(self):
+        calibration = pd.read_csv(config.CALIBRATION_FILE)
+        fun = lambda x, a, b: a * x + b
+        opt_1, cov_1 = curve_fit(fun, calibration["freq"], calibration["current_get"])
+        opt_2, cov_2 = curve_fit(fun, calibration["current_get"], calibration["freq"])
+        config.CALIBRATION_FREQ_2_CURR = list(opt_1)
+        config.CALIBRATION_CURR_2_FREQ = list(opt_2)
 
     def show_calibration_graph_window(self, results: dict):
         if self.calibrationGraphWindow is None:
