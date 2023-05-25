@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
 )
 
 from api.keithley_power_supply import KeithleyBlock
+from api.rs_fsek30 import SpectrumBlock
 from api.rs_nrx import NRXBlock
 from config import config
 
@@ -27,6 +28,18 @@ class KeithleyWorker(QObject):
         keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
         result = keithley.test()
         status = config.KEITHLEY_TEST_MAP.get(result, "Undefined Error")
+        self.status.emit(status)
+        self.finished.emit()
+
+
+class RsSpectrumWorker(QObject):
+    finished = pyqtSignal()
+    status = pyqtSignal(str)
+
+    def run(self):
+        spectrum = SpectrumBlock(address=config.SPECTRUM_ADDRESS)
+        result = spectrum.idn()
+        status = "Ok" if "FSEK" in result else "Undefined Error"
         self.status.emit(status)
         self.finished.emit()
 
@@ -65,8 +78,10 @@ class SetUpTabWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.createGroupNRX()
         self.createGroupKeithley()
+        self.createGroupRsSpectrumAnalyzer()
         self.layout.addWidget(self.groupNRX, alignment=Qt.AlignmentFlag.AlignTop)
         self.layout.addWidget(self.groupKeithley)
+        self.layout.addWidget(self.groupRsSpectrum)
         self.setLayout(self.layout)
 
     def createGroupNRX(self):
@@ -150,6 +165,34 @@ class SetUpTabWidget(QWidget):
 
         self.groupKeithley.setLayout(layout)
 
+    def createGroupRsSpectrumAnalyzer(self):
+        self.groupRsSpectrum = QGroupBox("Spectrum Analyzer RS FSEK config")
+        self.groupRsSpectrum.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        layout = QGridLayout()
+
+        self.rsSpectrumAddressLabel = QLabel(self)
+        self.rsSpectrumAddressLabel.setText("RS Spectrum address:")
+        self.rsSpectrumAddress = QDoubleSpinBox(self)
+        self.rsSpectrumAddress.setRange(0, 31)
+        self.rsSpectrumAddress.setDecimals(0)
+        self.rsSpectrumAddress.setValue(config.SPECTRUM_ADDRESS)
+
+        self.rsSpectrumStatusLabel = QLabel(self)
+        self.rsSpectrumStatusLabel.setText("RS Spectrum status:")
+        self.rsSpectrumStatus = QLabel(self)
+        self.rsSpectrumStatus.setText("RS Spectrum is not initialized yet!")
+
+        self.btnInitRsSpectrum = QPushButton("Initialize RS Spectrum")
+        self.btnInitRsSpectrum.clicked.connect(self.initialize_rs_spectrum)
+
+        layout.addWidget(self.rsSpectrumAddressLabel, 1, 0)
+        layout.addWidget(self.rsSpectrumAddress, 1, 1)
+        layout.addWidget(self.rsSpectrumStatusLabel, 2, 0)
+        layout.addWidget(self.rsSpectrumStatus, 2, 1)
+        layout.addWidget(self.btnInitRsSpectrum, 3, 0, 1, 2)
+
+        self.groupRsSpectrum.setLayout(layout)
+
     def set_keithley_btn_state(self, state: str):
         text = config.KEITHLEY_OUTPUT_STATE_MAP.get(state)
         self.btnKeithleyState.setText(f"{text}")
@@ -222,3 +265,27 @@ class SetUpTabWidget(QWidget):
         self.keithley_thread.finished.connect(
             lambda: self.btnInitKeithley.setEnabled(True)
         )
+
+    def initialize_rs_spectrum(self):
+        self.rs_spectrum_thread = QThread()
+        self.rs_spectrum_worker = RsSpectrumWorker()
+
+        config.SPECTRUM_ADDRESS = int(self.rsSpectrumAddress.value())
+
+        self.rs_spectrum_worker.moveToThread(self.rs_spectrum_thread)
+        self.rs_spectrum_thread.started.connect(self.rs_spectrum_worker.run)
+        self.rs_spectrum_worker.finished.connect(self.rs_spectrum_thread.quit)
+        self.rs_spectrum_worker.finished.connect(self.rs_spectrum_worker.deleteLater)
+        self.rs_spectrum_thread.finished.connect(self.rs_spectrum_thread.deleteLater)
+        self.rs_spectrum_worker.status.connect(self.set_rs_spectrum_status)
+        self.rs_spectrum_thread.start()
+
+        self.btnInitRsSpectrum.setEnabled(False)
+        self.rs_spectrum_thread.finished.connect(
+            lambda: self.btnInitRsSpectrum.setEnabled(True)
+        )
+
+    def set_rs_spectrum_status(self, status: str):
+        self.rsSpectrumStatus.setText(status)
+
+
