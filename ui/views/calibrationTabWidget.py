@@ -41,10 +41,17 @@ class CalibrateWorker(QObject):
             "power": [],
             "freq": [],
         }
-        current_range = np.linspace(
+        current_range = list(np.linspace(
             config.KEITHLEY_CURRENT_FROM,
             config.KEITHLEY_CURRENT_TO,
             int(config.KEITHLEY_CURRENT_POINTS),
+        ))
+        current_range.extend(
+            list(np.linspace(
+                config.KEITHLEY_CURRENT_TO,
+                config.KEITHLEY_CURRENT_FROM,
+                int(config.KEITHLEY_CURRENT_POINTS),
+            ))
         )
 
         initial_current = dc_block.get_setted_current()
