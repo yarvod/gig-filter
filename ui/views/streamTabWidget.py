@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QPushButton,
     QDoubleSpinBox,
+    QSizePolicy,
 )
 
 from api.keithley_power_supply import KeithleyBlock
@@ -80,12 +81,13 @@ class StreamTabWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.createGroupNRX()
         self.createGroupKeithley()
-        self.layout.addWidget(self.groupNRX)
+        self.layout.addWidget(self.groupNRX, alignment=Qt.AlignmentFlag.AlignTop)
         self.layout.addWidget(self.groupKeithley)
         self.setLayout(self.layout)
 
     def createGroupNRX(self):
         self.groupNRX = QGroupBox("NRX monitor")
+        self.groupNRX.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         layout = QGridLayout()
 
         self.nrxPowerLabel = QLabel("<h4>Power, dBm</h4>")
@@ -103,18 +105,19 @@ class StreamTabWidget(QWidget):
         layout.addWidget(
             self.nrxPowerLabel, 1, 0, alignment=Qt.AlignmentFlag.AlignCenter
         )
-        layout.addWidget(self.nrxPower, 2, 0, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.nrxPower, 1, 1, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(
-            self.btnStartStreamNRX, 3, 0, alignment=Qt.AlignmentFlag.AlignCenter
+            self.btnStartStreamNRX, 2, 0, alignment=Qt.AlignmentFlag.AlignCenter
         )
         layout.addWidget(
-            self.btnStopStreamNRX, 3, 1, alignment=Qt.AlignmentFlag.AlignCenter
+            self.btnStopStreamNRX, 2, 1, alignment=Qt.AlignmentFlag.AlignCenter
         )
 
         self.groupNRX.setLayout(layout)
 
     def createGroupKeithley(self):
         self.groupKeithley = QGroupBox("Keithley monitor")
+        self.groupKeithley.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         layout = QGridLayout()
 
         self.keithleyVoltageGetLabel = QLabel(self)

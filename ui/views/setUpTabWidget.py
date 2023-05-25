@@ -1,6 +1,6 @@
 import logging
 
-from PyQt6.QtCore import QObject, pyqtSignal, QThread
+from PyQt6.QtCore import QObject, pyqtSignal, QThread, Qt
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
-    QDoubleSpinBox,
+    QDoubleSpinBox, QSizePolicy,
 )
 
 from api.keithley_power_supply import KeithleyBlock
@@ -65,12 +65,13 @@ class SetUpTabWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.createGroupNRX()
         self.createGroupKeithley()
-        self.layout.addWidget(self.groupNRX)
+        self.layout.addWidget(self.groupNRX, alignment=Qt.AlignmentFlag.AlignTop)
         self.layout.addWidget(self.groupKeithley)
         self.setLayout(self.layout)
 
     def createGroupNRX(self):
         self.groupNRX = QGroupBox("NRX config")
+        self.groupNRX.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         layout = QGridLayout()
 
         self.nrxIPLabel = QLabel(self)
@@ -112,6 +113,7 @@ class SetUpTabWidget(QWidget):
 
     def createGroupKeithley(self):
         self.groupKeithley = QGroupBox("Keithley config")
+        self.groupKeithley.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         layout = QGridLayout()
 
         self.keithleyAddressLabel = QLabel(self)

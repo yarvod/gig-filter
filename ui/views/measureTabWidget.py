@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QPushButton,
     QDoubleSpinBox,
-    QFileDialog,
+    QFileDialog, QSizePolicy,
 )
 
 from api.keithley_power_supply import KeithleyBlock
@@ -88,11 +88,12 @@ class MeasureTabWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.measureGraphWindow = None
         self.createGroupMeas()
-        self.layout.addWidget(self.groupMeas)
+        self.layout.addWidget(self.groupMeas, alignment=Qt.AlignmentFlag.AlignTop)
         self.setLayout(self.layout)
 
     def createGroupMeas(self):
         self.groupMeas = QGroupBox("Measure params")
+        self.groupMeas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         layout = QGridLayout()
 
         self.keithleyFreqFromLabel = QLabel("Frequency from, GHz")

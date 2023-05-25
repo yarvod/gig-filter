@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QPushButton,
     QDoubleSpinBox,
-    QFileDialog,
+    QFileDialog, QSizePolicy,
 )
 from scipy.optimize import curve_fit
 
@@ -90,11 +90,12 @@ class CalibrationTabWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.calibrationGraphWindow = None
         self.createGroupCalibration()
-        self.layout.addWidget(self.groupCalibration)
+        self.layout.addWidget(self.groupCalibration, alignment=Qt.AlignmentFlag.AlignTop)
         self.setLayout(self.layout)
 
     def createGroupCalibration(self):
         self.groupCalibration = QGroupBox("Calibration params")
+        self.groupCalibration.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         layout = QGridLayout()
 
         self.keithleyCurrentFromLabel = QLabel("Current from, A")
