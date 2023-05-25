@@ -60,13 +60,12 @@ class CalibrateWorker(QObject):
             if not config.CALIBRATION_MEAS:
                 break
             dc_block.set_current(current)
-            time.sleep(0.1)
+            time.sleep(config.CALIBRATION_STEP_DELAY)
             if step == 1:
                 time.sleep(0.4)
             current_get = dc_block.get_current()
             voltage_get = dc_block.get_voltage()
             s_block.peak_search()
-            time.sleep(0.1)
             power = s_block.get_peak_power()
             freq = s_block.get_peak_freq()
             results["current_set"].append(current)
@@ -124,6 +123,11 @@ class CalibrationTabWidget(QWidget):
         self.keithleyCurrentPoints.setDecimals(0)
         self.keithleyCurrentPoints.setValue(config.KEITHLEY_CURRENT_POINTS)
 
+        self.calibrationStepDelayLabel = QLabel("Step delay, s")
+        self.calibrationStepDelay = QDoubleSpinBox(self)
+        self.calibrationStepDelay.setRange(0, 10)
+        self.calibrationStepDelay.setValue(config.CALIBRATION_STEP_DELAY)
+
         self.btnStartMeas = QPushButton("Start Calibration")
         self.btnStartMeas.clicked.connect(self.start_calibration)
 
@@ -136,8 +140,10 @@ class CalibrationTabWidget(QWidget):
         layout.addWidget(self.keithleyCurrentTo, 2, 1)
         layout.addWidget(self.keithleyCurrentPointsLabel, 3, 0)
         layout.addWidget(self.keithleyCurrentPoints, 3, 1)
-        layout.addWidget(self.btnStartMeas, 4, 0, 1, 2)
-        layout.addWidget(self.btnStopMeas, 5, 0, 1, 2)
+        layout.addWidget(self.calibrationStepDelayLabel, 4, 0)
+        layout.addWidget(self.calibrationStepDelay, 4, 1)
+        layout.addWidget(self.btnStartMeas, 5, 0, 1, 2)
+        layout.addWidget(self.btnStopMeas, 5, 3)
 
         self.groupCalibration.setLayout(layout)
 
@@ -168,6 +174,7 @@ class CalibrationTabWidget(QWidget):
         config.KEITHLEY_CURRENT_FROM = self.keithleyCurrentFrom.value()
         config.KEITHLEY_CURRENT_TO = self.keithleyCurrentTo.value()
         config.KEITHLEY_CURRENT_POINTS = self.keithleyCurrentPoints.value()
+        config.CALIBRATION_STEP_DELAY = self.calibrationStepDelay.value()
 
         self.calibration_thread.started.connect(self.calibration_worker.run)
         self.calibration_worker.finished.connect(self.calibration_thread.quit)
@@ -194,8 +201,8 @@ class CalibrationTabWidget(QWidget):
 
     def save_calibration(self, results: dict):
         fun = lambda x, a, b: a * x + b
-        opt_1, cov_1 = curve_fit(fun, results["frequency"], results["current"])
-        opt_2, cov_2 = curve_fit(fun, results["current"], results["frequency"])
+        opt_1, cov_1 = curve_fit(fun, results["freq"], results["current_get"])
+        opt_2, cov_2 = curve_fit(fun, results["current_get"], results["freq"])
         config.CALIBRATION_FREQ_2_CURR = list(opt_1)
         config.CALIBRATION_CURR_2_FREQ = list(opt_2)
         try:
