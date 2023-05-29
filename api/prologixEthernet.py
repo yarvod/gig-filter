@@ -66,7 +66,11 @@ class PrologixGPIBEthernet:
 
 
 if __name__ == "__main__":
-    dev = PrologixGPIBEthernet(host="172.168.20.1")
+    print("IP address:")
+    host = input()
+    dev = PrologixGPIBEthernet(host=host)
     dev.connect()
-    dev.select(22)
+    print("GPIB address:")
+    gpib = int(input())
+    dev.select(gpib)
     print(dev.query('*IDN?'))
