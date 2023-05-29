@@ -156,8 +156,8 @@ class CalibrationTabWidget(QWidget):
         self.btnChooseCalibrationFile = QPushButton("Choose file")
         self.btnChooseCalibrationFile.clicked.connect(self.chooseCalibrationFile)
 
-        self.btnCalibrate = QPushButton("Calibrate")
-        self.btnCalibrate.clicked.connect(self.calibrate)
+        self.btnCalibrate = QPushButton("Apply calibration")
+        self.btnCalibrate.clicked.connect(self.apply_calibration)
 
         layout.addWidget(self.calibrationFilePath, 1, 0)
         layout.addWidget(self.btnChooseCalibrationFile, 1, 1)
@@ -219,7 +219,7 @@ class CalibrationTabWidget(QWidget):
         except (IndexError, FileNotFoundError):
             return
 
-    def calibrate(self):
+    def apply_calibration(self):
         calibration = pd.read_csv(config.CALIBRATION_FILE)
         fun = lambda x, a, b: a * x + b
         opt_1, cov_1 = curve_fit(fun, calibration["frequency"], calibration["current"])
