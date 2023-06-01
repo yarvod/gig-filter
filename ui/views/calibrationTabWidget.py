@@ -230,7 +230,7 @@ class CalibrationTabWidget(QWidget):
         config.CALIBRATION_FREQ_2_CURR = list(opt_1)
         config.CALIBRATION_CURR_2_FREQ = list(opt_2)
         try:
-            filepath = QFileDialog.getSaveFileName(caption="Save calibration file")[0]
+            filepath = QFileDialog.getSaveFileName(caption="Save calibration file", filter=".csv")[0]
             df = pd.DataFrame(
                 {"frequency": results["freq"], "current": results["current_get"]}
             )
@@ -240,8 +240,10 @@ class CalibrationTabWidget(QWidget):
 
     def chooseCalibrationFile(self):
         try:
-            filepath = QFileDialog.getOpenFileName(caption="Save calibration file")[0]
-            self.calibrationFilePath.setText(f"{filepath}")
+            filepath = QFileDialog.getOpenFileName(caption="Choose calibration file", filter="*.csv")[0]
+            if filepath:
+                self.calibrationFilePath.setText(f"{filepath}")
+                config.CALIBRATION_FILE = filepath
         except (IndexError, FileNotFoundError):
             return
 
