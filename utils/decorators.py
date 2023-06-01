@@ -1,3 +1,5 @@
+import time
+
 import pyvisa
 
 from utils.logger import logger
@@ -21,6 +23,8 @@ def visa_exception(func):
 
     def wrapper(*args, **kwargs):
         for attempt in range(1, 5):
+            if attempt > 1:
+                time.sleep(0.2)
             try:
                 return func(*args, **kwargs)
             except (

@@ -2,7 +2,7 @@ import serial
 import sys
 import time
 
-from utils.classes import Singleton
+from utils.classes import Singleton, InstrumentAdapterInterface
 from utils.logger import logger
 
 
@@ -14,16 +14,18 @@ def main():
     return
 
 
-class PrologixGPIBUsb(metaclass=Singleton):
+class PrologixGPIBUsb(InstrumentAdapterInterface, metaclass=Singleton):
     resource = None
     opened = False
     eq_list = []
 
     def __init__(self, port_number: int):
         self.port_number = port_number
+        self.connect()
+
+    def connect(self):
         if (self.resource is None) or (not self.resource.isOpen()):
             self.opened = self.init_gpib_card()
-        return
 
     def scan(self, silence=True):
         self.eq_list = self.scan_eq(self.resource, silence=silence)

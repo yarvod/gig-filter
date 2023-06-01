@@ -9,7 +9,8 @@ from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
-    QDoubleSpinBox, QSizePolicy,
+    QDoubleSpinBox,
+    QSizePolicy,
 )
 
 from api.keithley_power_supply import KeithleyBlock
@@ -25,7 +26,9 @@ class KeithleyWorker(QObject):
     status = pyqtSignal(str)
 
     def run(self):
-        keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
+        keithley = KeithleyBlock(
+            address=config.KEITHLEY_ADDRESS, prologix_ip=config.PROLOGIX_IP
+        )
         result = keithley.test()
         status = config.KEITHLEY_TEST_MAP.get(result, "Undefined Error")
         self.status.emit(status)
@@ -37,7 +40,9 @@ class RsSpectrumWorker(QObject):
     status = pyqtSignal(str)
 
     def run(self):
-        spectrum = SpectrumBlock(address=config.SPECTRUM_ADDRESS)
+        spectrum = SpectrumBlock(
+            address=config.SPECTRUM_ADDRESS,
+        )
         result = spectrum.idn()
         status = "Ok" if "FSEK" in result else "Undefined Error"
         self.status.emit(status)
@@ -50,7 +55,7 @@ class KeithleyOutputWorker(QObject):
 
     def run(self):
         keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
-        result = keithley.set_output_state(state=config.KEITHLEY_OUTPUT_STATE)
+        keithley.set_output_state(state=config.KEITHLEY_OUTPUT_STATE)
         state = keithley.get_output_state()
         self.state.emit(state)
         self.finished.emit()
@@ -86,7 +91,9 @@ class SetUpTabWidget(QWidget):
 
     def createGroupNRX(self):
         self.groupNRX = QGroupBox("NRX config")
-        self.groupNRX.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.groupNRX.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         layout = QGridLayout()
 
         self.nrxIPLabel = QLabel(self)
@@ -128,7 +135,9 @@ class SetUpTabWidget(QWidget):
 
     def createGroupKeithley(self):
         self.groupKeithley = QGroupBox("Keithley config")
-        self.groupKeithley.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.groupKeithley.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         layout = QGridLayout()
 
         self.keithleyAddressLabel = QLabel(self)
@@ -167,7 +176,9 @@ class SetUpTabWidget(QWidget):
 
     def createGroupRsSpectrumAnalyzer(self):
         self.groupRsSpectrum = QGroupBox("Spectrum Analyzer RS FSEK config")
-        self.groupRsSpectrum.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.groupRsSpectrum.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         layout = QGridLayout()
 
         self.rsSpectrumAddressLabel = QLabel(self)
@@ -287,5 +298,3 @@ class SetUpTabWidget(QWidget):
 
     def set_rs_spectrum_status(self, status: str):
         self.rsSpectrumStatus.setText(status)
-
-

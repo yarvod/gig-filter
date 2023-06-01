@@ -24,37 +24,37 @@ class KeithleyStreamWorker(QObject):
     finished = pyqtSignal()
     current_get = pyqtSignal(float)
     voltage_get = pyqtSignal(float)
-    keithley = None
 
     def run(self):
-        self.keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
+        keithley = KeithleyBlock(
+            address=config.KEITHLEY_ADDRESS, prologix_ip=config.PROLOGIX_IP
+        )
         while config.KEITHLEY_STREAM:
             time.sleep(0.2)
-            current_get = self.keithley.get_current()
+            current_get = keithley.get_current()
             self.current_get.emit(current_get)
-            voltage_get = self.keithley.get_voltage()
+            voltage_get = keithley.get_voltage()
             self.voltage_get.emit(voltage_get)
-
         self.finished.emit()
 
 
 class KeithleySetCurrentWorker(QObject):
     finished = pyqtSignal()
-    keithley = None
 
     def run(self):
-        self.keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
-        self.keithley.set_current(config.KEITHLEY_CURRENT_SET)
+        keithley = KeithleyBlock(
+            address=config.KEITHLEY_ADDRESS, prologix_ip=config.PROLOGIX_IP
+        )
+        keithley.set_current(config.KEITHLEY_CURRENT_SET)
         self.finished.emit()
 
 
 class KeithleySetVoltageWorker(QObject):
     finished = pyqtSignal()
-    keithley = None
 
     def run(self):
-        self.keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
-        self.keithley.set_voltage(config.KEITHLEY_VOLTAGE_SET)
+        keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
+        keithley.set_voltage(config.KEITHLEY_VOLTAGE_SET)
         self.finished.emit()
 
 
@@ -87,7 +87,9 @@ class StreamTabWidget(QWidget):
 
     def createGroupNRX(self):
         self.groupNRX = QGroupBox("NRX monitor")
-        self.groupNRX.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.groupNRX.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         layout = QGridLayout()
 
         self.nrxPowerLabel = QLabel("<h4>Power, dBm</h4>")
@@ -117,7 +119,9 @@ class StreamTabWidget(QWidget):
 
     def createGroupKeithley(self):
         self.groupKeithley = QGroupBox("Keithley monitor")
-        self.groupKeithley.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.groupKeithley.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         layout = QGridLayout()
 
         self.keithleyVoltageGetLabel = QLabel(self)

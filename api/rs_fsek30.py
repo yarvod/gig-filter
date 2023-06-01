@@ -1,16 +1,34 @@
+from api.prologixEthernet import PrologixGPIBEthernet
 from api.prologixUsb import PrologixGPIBUsb
 from config import config
+from utils.classes import InstrumentGPIBBlockInterface, InstrumentAdapterInterface
 from utils.decorators import exception
 
 
-class SpectrumBlock:
+class SpectrumBlock(InstrumentGPIBBlockInterface):
     def __init__(
         self,
-        port_number: int = config.PROLOGIX_ADDRESS,
+        prologix_address: int = config.PROLOGIX_ADDRESS,
+        prologix_ip: str = config.PROLOGIX_IP,
         address: int = config.SPECTRUM_ADDRESS,
+        use_ethernet: bool = True,
     ):
+        self.instr = None
+        self.prologix_address = prologix_address
+        self.prologix_ip = prologix_ip
+        self.use_ethernet = use_ethernet
         self.address = address
-        self.instr = PrologixGPIBUsb(port_number)
+        self.set_instrument_adapter()
+
+    def set_instrument_adapter(self):
+        if self.use_ethernet:
+            self.instr: InstrumentAdapterInterface = PrologixGPIBEthernet(
+                self.prologix_ip
+            )
+        else:
+            self.instr: InstrumentAdapterInterface = PrologixGPIBUsb(
+                self.prologix_address
+            )
 
     @exception
     def close(self):
@@ -30,7 +48,7 @@ class SpectrumBlock:
         return self.instr.query("*TST?", self.address).strip()
 
     def peak_search(self):
-        return self.instr.query(f"CALC:MARK:MAX", self.address)
+        return self.instr.write(f"CALC:MARK:MAX", self.address)
 
     @exception
     def get_peak_freq(self):

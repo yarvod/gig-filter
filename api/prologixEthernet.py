@@ -1,38 +1,83 @@
 import socket
 
+from utils.classes import InstrumentAdapterInterface, Singleton
+from utils.logger import logger
 
-class PrologixGPIBEthernet:
+
+class PrologixGPIBEthernet(InstrumentAdapterInterface, metaclass=Singleton):
     PORT = 1234
+    socket = None
 
-    def __init__(self, host, timeout=1):
+    def __init__(self, host: str, timeout: float = 2):
         self.host = host
-        self.socket = socket.socket(
-            socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP
-        )
         self.timeout = 0
-        self.set_timeout(timeout)
-
-    def connect(self):
-        self.socket.connect((self.host, self.PORT))
-
+        if self.socket is None:
+            logger.info(
+                f"[{self.__class__.__name__}.__init__]Socket is None, creating ..."
+            )
+            self.socket = socket.socket(
+                socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP
+            )
+        else:
+            logger.info(
+                f"[{self.__class__.__name__}.__init__]Socket is already existed, connecting ..."
+            )
+        self.connect()
         self._setup()
 
+    def connect(self, timeout: float = 2):
+        self.set_timeout(timeout)
+        try:
+            self.socket.connect((self.host, self.PORT))
+            logger.info(
+                f"[{self.__class__.__name__}.connect]Socket has been connected {self.socket}."
+            )
+        except OSError as e:
+            logger.error(f"[{self.__class__.__name__}.connect] {e}")
+
+    def is_socket_closed(self) -> bool:
+        try:
+            # this will try to read bytes without blocking and also without removing them from buffer (peek only)
+            data = self.socket.recv(16)
+            if len(data) == 0:
+                return True
+        except BlockingIOError:
+            return False  # socket is open and reading from it would block
+        except ConnectionResetError:
+            return True  # socket was closed for some other reason
+        except Exception as e:
+            logger.error(
+                f"[{self.__class__.__name__}.is_socket_closed] Unexpected exception when checking if a socket is closed"
+            )
+            return False
+        return False
+
     def close(self):
+        if self.socket is None:
+            logger.warning(f"[{self.__class__.__name__}.close] Socket is None")
+            return
         self.socket.close()
+        logger.info(f"[{self.__class__.__name__}.close]Socket has been closed.")
 
-    def select(self, addr):
-        self._send("++addr %i" % int(addr))
+    def select(self, eq_addr):
+        self._send("++addr %i" % int(eq_addr))
 
-    def write(self, cmd):
+    def write(self, cmd, eq_addr: int = None):
+        if eq_addr:
+            self.select(eq_addr)
         self._send(cmd)
 
-    def read(self, num_bytes=1024):
+    def read(self, eq_addr: int = None, num_bytes=1024):
+        if eq_addr:
+            self.select(eq_addr)
         self._send("++read eoi")
         return self._recv(num_bytes)
 
-    def query(self, cmd, buffer_size=1024 * 1024):
+    def query(self, cmd, eq_addr: int = None, buffer_size=1024 * 1024):
+        if eq_addr:
+            self.select(eq_addr)
         self.write(cmd)
-        return self.read(buffer_size)
+        return self.read(num_bytes=buffer_size)
 
     def set_timeout(self, timeout):
         # see user manual for details on accepted timeout values
@@ -64,6 +109,9 @@ class PrologixGPIBEthernet:
         # do not require CR or LF appended to GPIB data
         self._send("++eos 3")
 
+    def __del__(self):
+        self.close()
+
 
 if __name__ == "__main__":
     print("IP address:")
@@ -73,4 +121,4 @@ if __name__ == "__main__":
     print("GPIB address:")
     gpib = int(input())
     dev.select(gpib)
-    print(dev.query('*IDN?'))
+    print(dev.query("*IDN?"))

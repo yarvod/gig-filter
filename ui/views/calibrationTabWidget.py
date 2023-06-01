@@ -13,7 +13,8 @@ from PyQt6.QtWidgets import (
     QLabel,
     QPushButton,
     QDoubleSpinBox,
-    QFileDialog, QSizePolicy,
+    QFileDialog,
+    QSizePolicy,
 )
 from scipy.optimize import curve_fit
 
@@ -31,8 +32,12 @@ class CalibrateWorker(QObject):
     stream_result = pyqtSignal(dict)
 
     def run(self):
-        dc_block = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
-        s_block = SpectrumBlock(address=config.SPECTRUM_ADDRESS)
+        dc_block = KeithleyBlock(
+            prologix_ip=config.PROLOGIX_IP, address=config.KEITHLEY_ADDRESS
+        )
+        s_block = SpectrumBlock(
+            prologix_ip=config.PROLOGIX_IP, address=config.SPECTRUM_ADDRESS
+        )
 
         results = {
             "current_set": [],
@@ -41,17 +46,21 @@ class CalibrateWorker(QObject):
             "power": [],
             "freq": [],
         }
-        current_range = list(np.linspace(
-            config.KEITHLEY_CURRENT_FROM,
-            config.KEITHLEY_CURRENT_TO,
-            int(config.KEITHLEY_CURRENT_POINTS),
-        ))
-        current_range.extend(
-            list(np.linspace(
-                config.KEITHLEY_CURRENT_TO,
+        current_range = list(
+            np.linspace(
                 config.KEITHLEY_CURRENT_FROM,
+                config.KEITHLEY_CURRENT_TO,
                 int(config.KEITHLEY_CURRENT_POINTS),
-            ))
+            )
+        )
+        current_range.extend(
+            list(
+                np.linspace(
+                    config.KEITHLEY_CURRENT_TO,
+                    config.KEITHLEY_CURRENT_FROM,
+                    int(config.KEITHLEY_CURRENT_POINTS),
+                )
+            )
         )
 
         initial_current = dc_block.get_setted_current()
@@ -86,7 +95,6 @@ class CalibrateWorker(QObject):
             logger.info(f"[{proc} %]")
 
         dc_block.set_current(initial_current)
-
         self.results.emit(results)
         self.finished.emit()
 
@@ -98,13 +106,17 @@ class CalibrationTabWidget(QWidget):
         self.calibrationGraphWindow = None
         self.createGroupCalibration()
         self.createGroupCalibrationFiles()
-        self.layout.addWidget(self.groupCalibration, alignment=Qt.AlignmentFlag.AlignTop)
+        self.layout.addWidget(
+            self.groupCalibration, alignment=Qt.AlignmentFlag.AlignTop
+        )
         self.layout.addWidget(self.groupCalibrationFiles)
         self.setLayout(self.layout)
 
     def createGroupCalibration(self):
         self.groupCalibration = QGroupBox("Calibration params")
-        self.groupCalibration.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.groupCalibration.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         layout = QGridLayout()
 
         self.keithleyCurrentFromLabel = QLabel("Current from, A")
@@ -149,7 +161,9 @@ class CalibrationTabWidget(QWidget):
 
     def createGroupCalibrationFiles(self):
         self.groupCalibrationFiles = QGroupBox("Calibration files")
-        self.groupCalibrationFiles.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.groupCalibrationFiles.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         layout = QGridLayout()
 
         self.calibrationFilePath = QLabel(f"{config.CALIBRATION_FILE}")
@@ -207,7 +221,9 @@ class CalibrationTabWidget(QWidget):
         config.CALIBRATION_CURR_2_FREQ = list(opt_2)
         try:
             filepath = QFileDialog.getSaveFileName(caption="Save calibration file")[0]
-            df = pd.DataFrame({"frequency": results["freq"], "current": results["current_get"]})
+            df = pd.DataFrame(
+                {"frequency": results["freq"], "current": results["current_get"]}
+            )
             df.to_csv(filepath)
         except (IndexError, FileNotFoundError):
             pass
