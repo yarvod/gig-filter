@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import (
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_nrx import NRXBlock
 from config import config
+from utils.functions import linear
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,7 @@ class StreamTabWidget(QWidget):
         self.layout.addWidget(self.groupNRX, alignment=Qt.AlignmentFlag.AlignTop)
         self.layout.addWidget(self.groupKeithley)
         self.setLayout(self.layout)
+        self.curr2freq()
 
     def createGroupNRX(self):
         self.groupNRX = QGroupBox("NRX monitor")
@@ -143,21 +145,28 @@ class StreamTabWidget(QWidget):
         self.btnStopStreamKeithley.setEnabled(False)
         self.btnStopStreamKeithley.clicked.connect(self.stop_stream_keithley)
 
-        self.keithleyCurrentSetLabel = QLabel("Current set, A")
-        self.keithleyCurrentSet = QDoubleSpinBox(self)
-        self.keithleyCurrentSet.setRange(0, 5)
-        self.keithleyCurrentSet.setDecimals(4)
-
         self.keithleyVoltageSetLabel = QLabel("Voltage set, V")
         self.keithleyVoltageSet = QDoubleSpinBox(self)
         self.keithleyVoltageSet.setRange(0, 30)
         self.keithleyVoltageSet.setDecimals(3)
 
+        self.btnKeithleyVoltageSet = QPushButton("Set voltage")
+        self.btnKeithleyVoltageSet.clicked.connect(self.keithley_set_voltage)
+
+        self.keithleyCurrentSetLabel = QLabel("Current set, A")
+        self.keithleyCurrentSet = QDoubleSpinBox(self)
+        self.keithleyCurrentSet.setRange(0, 5)
+        self.keithleyCurrentSet.setDecimals(4)
+        self.keithleyCurrentSet.valueChanged.connect(self.curr2freq)
+
         self.btnKeithleyCurrentSet = QPushButton("Set current")
         self.btnKeithleyCurrentSet.clicked.connect(self.keithley_set_current)
 
-        self.btnKeithleyVoltageSet = QPushButton("Set voltage")
-        self.btnKeithleyVoltageSet.clicked.connect(self.keithley_set_voltage)
+        self.keithleyFreqLabel = QLabel(self)
+        self.keithleyFreqLabel.setText("YIG frequency")
+
+        self.keithleyFreq = QLabel(self)
+        self.keithleyFreq.setText("~ 0 [GHz]")
 
         layout.addWidget(
             self.keithleyVoltageGetLabel, 1, 0, alignment=Qt.AlignmentFlag.AlignCenter
@@ -179,6 +188,8 @@ class StreamTabWidget(QWidget):
         layout.addWidget(self.keithleyCurrentSetLabel, 5, 0)
         layout.addWidget(self.keithleyCurrentSet, 5, 1)
         layout.addWidget(self.btnKeithleyCurrentSet, 5, 2)
+        layout.addWidget(self.keithleyFreqLabel, 6, 0)
+        layout.addWidget(self.keithleyFreq, 6, 1)
 
         self.groupKeithley.setLayout(layout)
 
@@ -207,6 +218,10 @@ class StreamTabWidget(QWidget):
         self.keithley_set_current_thread.finished.connect(
             lambda: self.btnKeithleyCurrentSet.setEnabled(True)
         )
+
+    def curr2freq(self):
+        freq = linear(self.keithleyCurrentSet.value(), *config.CALIBRATION_CURR_2_FREQ)
+        self.keithleyFreq.setText(f"~ {round(freq / 1e9, 2)} [GHz]")
 
     def keithley_set_voltage(self):
         self.keithley_set_voltage_thread = QThread()

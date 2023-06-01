@@ -22,6 +22,7 @@ from api.keithley_power_supply import KeithleyBlock
 from api.rs_fsek30 import SpectrumBlock
 from config import config
 from ui.windows.calibrationGraphWindow import CalibrationGraphWindow
+from utils.functions import linear
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +112,7 @@ class CalibrationTabWidget(QWidget):
         )
         self.layout.addWidget(self.groupCalibrationFiles)
         self.setLayout(self.layout)
+        self.curr2freq()
 
     def createGroupCalibration(self):
         self.groupCalibration = QGroupBox("Calibration params")
@@ -123,11 +125,17 @@ class CalibrationTabWidget(QWidget):
         self.keithleyCurrentFrom = QDoubleSpinBox(self)
         self.keithleyCurrentFrom.setRange(0, 5)
         self.keithleyCurrentFrom.setValue(config.KEITHLEY_CURRENT_FROM)
+        self.keithleyCurrentFrom.valueChanged.connect(self.curr2freq)
+
+        self.keithleyFreqFrom = QLabel("~ 0 [GHz]")
 
         self.keithleyCurrentToLabel = QLabel("Current to, A")
         self.keithleyCurrentTo = QDoubleSpinBox(self)
         self.keithleyCurrentTo.setRange(0, 5)
         self.keithleyCurrentTo.setValue(config.KEITHLEY_CURRENT_TO)
+        self.keithleyCurrentTo.valueChanged.connect(self.curr2freq)
+
+        self.keithleyFreqTo = QLabel("~ 0 [GHz]")
 
         self.keithleyCurrentPointsLabel = QLabel("Points count")
         self.keithleyCurrentPoints = QDoubleSpinBox(self)
@@ -148,14 +156,16 @@ class CalibrationTabWidget(QWidget):
 
         layout.addWidget(self.keithleyCurrentFromLabel, 1, 0)
         layout.addWidget(self.keithleyCurrentFrom, 1, 1)
+        layout.addWidget(self.keithleyFreqFrom, 1, 2)
         layout.addWidget(self.keithleyCurrentToLabel, 2, 0)
         layout.addWidget(self.keithleyCurrentTo, 2, 1)
+        layout.addWidget(self.keithleyFreqTo, 2, 2)
         layout.addWidget(self.keithleyCurrentPointsLabel, 3, 0)
         layout.addWidget(self.keithleyCurrentPoints, 3, 1)
         layout.addWidget(self.calibrationStepDelayLabel, 4, 0)
         layout.addWidget(self.calibrationStepDelay, 4, 1)
         layout.addWidget(self.btnStartMeas, 5, 0, 1, 2)
-        layout.addWidget(self.btnStopMeas, 5, 3)
+        layout.addWidget(self.btnStopMeas, 5, 2)
 
         self.groupCalibration.setLayout(layout)
 
@@ -252,3 +262,13 @@ class CalibrationTabWidget(QWidget):
             new_plot=results.get("new_plot", True),
         )
         self.calibrationGraphWindow.show()
+
+    def curr2freq(self):
+        freq_from = linear(
+            self.keithleyCurrentFrom.value(), *config.CALIBRATION_CURR_2_FREQ
+        )
+        self.keithleyFreqFrom.setText(f"~ {round(freq_from / 1e9, 2)} [GHz]")
+        freq_to = linear(
+            self.keithleyCurrentTo.value(), *config.CALIBRATION_CURR_2_FREQ
+        )
+        self.keithleyFreqTo.setText(f"~ {round(freq_to / 1e9, 2)} [GHz]")
