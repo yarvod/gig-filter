@@ -16,13 +16,12 @@ from PyQt6.QtWidgets import (
     QFileDialog,
     QSizePolicy,
 )
-from scipy.optimize import curve_fit
 
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_fsek30 import SpectrumBlock
 from config import config
 from ui.windows.calibrationGraphWindow import CalibrationGraphWindow
-from utils.functions import linear
+from utils.functions import linear, linear_fit
 
 logger = logging.getLogger(__name__)
 
@@ -107,10 +106,10 @@ class CalibrationTabWidget(QWidget):
         self.calibrationGraphWindow = None
         self.createGroupCalibration()
         self.createGroupCalibrationFiles()
-        self.layout.addWidget(
-            self.groupCalibration, alignment=Qt.AlignmentFlag.AlignTop
-        )
+        self.layout.addWidget(self.groupCalibration)
+        self.layout.addSpacing(10)
         self.layout.addWidget(self.groupCalibrationFiles)
+        self.layout.addStretch()
         self.setLayout(self.layout)
         self.curr2freq()
 
@@ -224,13 +223,14 @@ class CalibrationTabWidget(QWidget):
         config.CALIBRATION_MEAS = False
 
     def save_calibration(self, results: dict):
-        fun = lambda x, a, b: a * x + b
-        opt_1, cov_1 = curve_fit(fun, results["freq"], results["current_get"])
-        opt_2, cov_2 = curve_fit(fun, results["current_get"], results["freq"])
+        opt_1 = linear_fit(results["freq"], results["current_get"])
+        opt_2 = linear_fit(results["current_get"], results["freq"])
         config.CALIBRATION_FREQ_2_CURR = list(opt_1)
         config.CALIBRATION_CURR_2_FREQ = list(opt_2)
         try:
-            filepath = QFileDialog.getSaveFileName(caption="Save calibration file", filter=".csv")[0]
+            filepath = QFileDialog.getSaveFileName(
+                caption="Save calibration file", filter=".csv"
+            )[0]
             df = pd.DataFrame(
                 {"frequency": results["freq"], "current": results["current_get"]}
             )
@@ -240,7 +240,9 @@ class CalibrationTabWidget(QWidget):
 
     def chooseCalibrationFile(self):
         try:
-            filepath = QFileDialog.getOpenFileName(caption="Choose calibration file", filter="*.csv")[0]
+            filepath = QFileDialog.getOpenFileName(
+                caption="Choose calibration file", filter="*.csv"
+            )[0]
             if filepath:
                 self.calibrationFilePath.setText(f"{filepath}")
                 config.CALIBRATION_FILE = filepath
@@ -249,9 +251,8 @@ class CalibrationTabWidget(QWidget):
 
     def apply_calibration(self):
         calibration = pd.read_csv(config.CALIBRATION_FILE)
-        fun = lambda x, a, b: a * x + b
-        opt_1, cov_1 = curve_fit(fun, calibration["frequency"], calibration["current"])
-        opt_2, cov_2 = curve_fit(fun, calibration["current"], calibration["frequency"])
+        opt_1 = linear_fit(calibration["frequency"], calibration["current"])
+        opt_2 = linear_fit(calibration["current"], calibration["frequency"])
         config.CALIBRATION_FREQ_2_CURR = list(opt_1)
         config.CALIBRATION_CURR_2_FREQ = list(opt_2)
 

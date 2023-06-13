@@ -82,8 +82,10 @@ class StreamTabWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.createGroupNRX()
         self.createGroupKeithley()
-        self.layout.addWidget(self.groupNRX, alignment=Qt.AlignmentFlag.AlignTop)
+        self.layout.addWidget(self.groupNRX)
+        self.layout.addSpacing(10)
         self.layout.addWidget(self.groupKeithley)
+        self.layout.addStretch()
         self.setLayout(self.layout)
         self.curr2freq()
 

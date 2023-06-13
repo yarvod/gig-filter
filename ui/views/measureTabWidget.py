@@ -89,7 +89,8 @@ class MeasureTabWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.measureGraphWindow = None
         self.createGroupMeas()
-        self.layout.addWidget(self.groupMeas, alignment=Qt.AlignmentFlag.AlignTop)
+        self.layout.addWidget(self.groupMeas)
+        self.layout.addStretch()
         self.setLayout(self.layout)
 
     def createGroupMeas(self):

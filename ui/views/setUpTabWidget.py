@@ -68,7 +68,6 @@ class NRXBlockWorker(QObject):
     def run(self):
         block = NRXBlock(
             ip=config.NRX_IP,
-            filter_time=config.NRX_FILTER_TIME,
             aperture_time=config.NRX_APER_TIME,
         )
         result = block.test()
@@ -84,75 +83,71 @@ class SetUpTabWidget(QWidget):
         self.createGroupNRX()
         self.createGroupKeithley()
         self.createGroupRsSpectrumAnalyzer()
-        self.layout.addWidget(self.groupNRX, alignment=Qt.AlignmentFlag.AlignTop)
+        self.layout.addWidget(self.groupNRX)
+        self.layout.addSpacing(10)
         self.layout.addWidget(self.groupKeithley)
+        self.layout.addSpacing(10)
         self.layout.addWidget(self.groupRsSpectrum)
+        self.layout.addStretch()
         self.setLayout(self.layout)
 
     def createGroupNRX(self):
-        self.groupNRX = QGroupBox("NRX config")
+        self.groupNRX = QGroupBox("Power meter config")
         self.groupNRX.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
         layout = QGridLayout()
 
         self.nrxIPLabel = QLabel(self)
-        self.nrxIPLabel.setText("NRX IP:")
+        self.nrxIPLabel.setText("PM IP:")
         self.nrxIP = QLineEdit(self)
         self.nrxIP.setText(config.NRX_IP)
 
-        self.nrxFilterTimeLabel = QLabel(self)
-        self.nrxFilterTimeLabel.setText("NRX Filter time, s:")
-        self.nrxFilterTime = QDoubleSpinBox(self)
-        self.nrxFilterTime.setRange(0.01, 1000)
-
         self.nrxAperTimeLabel = QLabel(self)
-        self.nrxAperTimeLabel.setText("NRX Aperture time, s:")
+        self.nrxAperTimeLabel.setText("PM Averaging time, s:")
         self.nrxAperTime = QDoubleSpinBox(self)
         self.nrxAperTime.setDecimals(5)
         self.nrxAperTime.setRange(1e-5, 1000)
         self.nrxAperTime.setValue(config.NRX_APER_TIME)
 
         self.nrxStatusLabel = QLabel(self)
-        self.nrxStatusLabel.setText("NRX status:")
+        self.nrxStatusLabel.setText("PM status:")
         self.nrxStatus = QLabel(self)
-        self.nrxStatus.setText("NRX is not initialized yet!")
+        self.nrxStatus.setText("PM is not initialized yet!")
 
-        self.btnInitNRX = QPushButton("Initialize NRX")
+        self.btnInitNRX = QPushButton("Initialize PM")
         self.btnInitNRX.clicked.connect(self.initialize_nrx)
 
         layout.addWidget(self.nrxIPLabel, 1, 0)
         layout.addWidget(self.nrxIP, 1, 1)
-        layout.addWidget(self.nrxFilterTimeLabel, 2, 0)
-        layout.addWidget(self.nrxFilterTime, 2, 1)
-        layout.addWidget(self.nrxAperTimeLabel, 3, 0)
-        layout.addWidget(self.nrxAperTime, 3, 1)
-        layout.addWidget(self.nrxStatusLabel, 4, 0)
-        layout.addWidget(self.nrxStatus, 4, 1)
-        layout.addWidget(self.btnInitNRX, 5, 0, 1, 2)
+        layout.addWidget(self.nrxAperTimeLabel, 2, 0)
+        layout.addWidget(self.nrxAperTime, 2, 1)
+        layout.addWidget(self.nrxStatusLabel, 3, 0)
+        layout.addWidget(self.nrxStatus, 3, 1)
+        layout.addWidget(self.btnInitNRX, 4, 0, 1, 2)
 
         self.groupNRX.setLayout(layout)
 
     def createGroupKeithley(self):
-        self.groupKeithley = QGroupBox("Keithley config")
+        self.groupKeithley = QGroupBox("Power supply config")
         self.groupKeithley.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
         layout = QGridLayout()
 
         self.keithleyAddressLabel = QLabel(self)
-        self.keithleyAddressLabel.setText("Keithley address:")
+        self.keithleyAddressLabel.setText("Power supply address:")
         self.keithleyAddress = QDoubleSpinBox(self)
         self.keithleyAddress.setRange(0, 31)
         self.keithleyAddress.setDecimals(0)
         self.keithleyAddress.setValue(config.KEITHLEY_ADDRESS)
 
         self.keithleyStatusLabel = QLabel(self)
-        self.keithleyStatusLabel.setText("Keithley status:")
+        self.keithleyStatusLabel.setText("Power supply status:")
         self.keithleyStatus = QLabel(self)
-        self.keithleyStatus.setText("Keithley is not checked yet!")
+        self.keithleyStatus.setText("Power supply is not checked yet!")
 
-        self.btnInitKeithley = QPushButton("Initialize Keithley")
+        self.btnInitKeithley = QPushButton("Initialize Power supply")
         self.btnInitKeithley.clicked.connect(self.initialize_keithley)
 
         self.keithleyStateLabel = QLabel("Output On/Off:")
@@ -241,7 +236,6 @@ class SetUpTabWidget(QWidget):
         self.nrx_worker = NRXBlockWorker()
 
         config.NRX_IP = self.nrxIP.text()
-        config.NRX_FILTER_TIME = self.nrxFilterTime.value()
         config.NRX_APER_TIME = self.nrxAperTime.value()
 
         self.nrx_worker.moveToThread(self.nrx_thread)
