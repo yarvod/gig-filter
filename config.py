@@ -51,7 +51,7 @@ class Config:
 
     CALIBRATION_CURR_2_FREQ = [3.49015508e10, 1.14176903e08]
     CALIBRATION_FREQ_2_CURR = [2.86513427e-11, -3.26694024e-03]
-    CALIBRATION_FILE = os.getcwd() + "/calibration.csv"
+    CALIBRATION_FILE = os.path.join(os.getcwd(), "calibration.csv")
     CALIBRATION_STEP_DELAY = 0.1
 
 
