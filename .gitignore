@@ -8,3 +8,4 @@ data
 stats.sh
 
 *.spec
+*.pyc
