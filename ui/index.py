@@ -8,7 +8,7 @@ class App(QMainWindow):
     def __init__(self):
         super().__init__()
         self.title = "YIG filter manager"
-        self.setWindowIcon(QtGui.QIcon("./assets/YIG_filter.png"))
+        self.setWindowIcon(QtGui.QIcon("./assets/logo_small.png"))
         self.left = 0
         self.top = 0
         self.width = 400
