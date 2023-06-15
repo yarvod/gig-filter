@@ -1,9 +1,9 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 
-from ui.views.calibrationTabWidget import CalibrationTabWidget
-from ui.views.measureTabWidget import MeasureTabWidget
-from ui.views.streamTabWidget import StreamTabWidget
-from ui.views.setUpTabWidget import SetUpTabWidget
+from interface.views.calibrationTabWidget import CalibrationTabWidget
+from interface.views.measureTabWidget import MeasureTabWidget
+from interface.views.streamTabWidget import StreamTabWidget
+from interface.views.setUpTabWidget import SetUpTabWidget
 
 
 class TabsWidget(QWidget):

@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_fsek30 import SpectrumBlock
 from config import config
-from ui.windows.calibrationGraphWindow import CalibrationGraphWindow
+from interface.windows.calibrationGraphWindow import CalibrationGraphWindow
 from utils.functions import linear, linear_fit
 
 logger = logging.getLogger(__name__)

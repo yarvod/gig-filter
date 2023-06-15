@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_nrx import NRXBlock
 from config import config
-from ui.windows.measureGraphWindow import MeasureGraphWindow
+from interface.windows.measureGraphWindow import MeasureGraphWindow
 from utils.functions import linear
 
 logger = logging.getLogger(__name__)
