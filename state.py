@@ -1,10 +1,13 @@
 import os
 
 
-class Config:
+class State:
     PROLOGIX_ADDRESS = 6
     KEITHLEY_ADDRESS = 22
     NRX_IP = "169.254.2.20"
+    NRX_STREAM_THREAD = False
+    NRX_STREAM_PLOT_GRAPH = False
+    NRX_STREAM_GRAPH_POINTS = 150
     PROLOGIX_IP = "169.254.156.103"
 
     SPECTRUM_ADDRESS = 20
@@ -18,7 +21,7 @@ class Config:
     KEITHLEY_CURRENT_POINTS = 100
     KEITHLEY_CURRENT_SET = 0
     KEITHLEY_VOLTAGE_SET = 0
-    KEITHLEY_STREAM = False
+    KEITHLEY_STREAM_THREAD = False
     KEITHLEY_OUTPUT_STATE = "0"
     KEITHLEY_OUTPUT_STATE_MAP = dict((("0", "Off"), ("1", "On")))
     KEITHLEY_OUTPUT_STATE_MAP_REVERSE = dict((("On", "0"), ("Off", "1")))
@@ -55,4 +58,4 @@ class Config:
     CALIBRATION_STEP_DELAY = 0.1
 
 
-config = Config()
+state = State()

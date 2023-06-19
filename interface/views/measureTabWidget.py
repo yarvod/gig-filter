@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
 
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_nrx import NRXBlock
-from config import config
+from state import state
 from interface.windows.measureGraphWindow import MeasureGraphWindow
 from utils.functions import linear
 
@@ -31,11 +31,11 @@ class MeasureWorker(QObject):
     stream_result = pyqtSignal(dict)
 
     def run(self):
-        keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
+        keithley = KeithleyBlock(address=state.KEITHLEY_ADDRESS)
         nrx = NRXBlock(
-            ip=config.NRX_IP,
-            filter_time=config.NRX_FILTER_TIME,
-            aperture_time=config.NRX_APER_TIME,
+            ip=state.NRX_IP,
+            filter_time=state.NRX_FILTER_TIME,
+            aperture_time=state.NRX_APER_TIME,
         )
 
         results = {
@@ -45,14 +45,14 @@ class MeasureWorker(QObject):
             "power": [],
         }
         current_range = np.linspace(
-            config.KEITHLEY_CURRENT_FROM,
-            config.KEITHLEY_CURRENT_TO,
-            int(config.KEITHLEY_CURRENT_POINTS),
+            state.KEITHLEY_CURRENT_FROM,
+            state.KEITHLEY_CURRENT_TO,
+            int(state.KEITHLEY_CURRENT_POINTS),
         )
         start_time = time.time()
         initial_current = keithley.get_setted_current()
         for step, current in enumerate(current_range, 1):
-            if not config.KEITHLEY_MEAS:
+            if not state.KEITHLEY_MEAS:
                 break
             keithley.set_current(current)
             time.sleep(0.01)
@@ -68,13 +68,13 @@ class MeasureWorker(QObject):
 
             self.stream_result.emit(
                 {
-                    "x": [linear(current_get, *config.CALIBRATION_CURR_2_FREQ)],
+                    "x": [linear(current_get, *state.CALIBRATION_CURR_2_FREQ)],
                     "y": [power],
                     "new_plot": step == 1,
                 }
             )
 
-            proc = round(step / config.KEITHLEY_CURRENT_POINTS * 100, 2)
+            proc = round(step / state.KEITHLEY_CURRENT_POINTS * 100, 2)
             logger.info(f"[{proc} %][Time {round(time.time() - start_time, 1)} s]")
 
         keithley.set_current(initial_current)
@@ -104,14 +104,14 @@ class MeasureTabWidget(QWidget):
         self.keithleyFreqFrom = QDoubleSpinBox(self)
         self.keithleyFreqFrom.setRange(0, 20)
         self.keithleyFreqFrom.setDecimals(3)
-        self.keithleyFreqFrom.setValue(config.KEITHLEY_FREQ_FROM)
+        self.keithleyFreqFrom.setValue(state.KEITHLEY_FREQ_FROM)
         self.keithleyFreqFrom.valueChanged.connect(self.freq2curr)
 
         self.keithleyFreqToLabel = QLabel("Frequency to, GHz")
         self.keithleyFreqTo = QDoubleSpinBox(self)
         self.keithleyFreqTo.setRange(0, 20)
         self.keithleyFreqTo.setDecimals(3)
-        self.keithleyFreqTo.setValue(config.KEITHLEY_FREQ_TO)
+        self.keithleyFreqTo.setValue(state.KEITHLEY_FREQ_TO)
         self.keithleyFreqTo.valueChanged.connect(self.freq2curr)
 
         self.keithleyCurrentFromLabel = QLabel("~ 0 [A]")
@@ -121,7 +121,7 @@ class MeasureTabWidget(QWidget):
         self.keithleyCurrentPoints = QDoubleSpinBox(self)
         self.keithleyCurrentPoints.setRange(0, 1001)
         self.keithleyCurrentPoints.setDecimals(0)
-        self.keithleyCurrentPoints.setValue(config.KEITHLEY_CURRENT_POINTS)
+        self.keithleyCurrentPoints.setValue(state.KEITHLEY_CURRENT_POINTS)
 
         self.btnStartMeas = QPushButton("Start Measure")
         self.btnStartMeas.clicked.connect(self.start_meas)
@@ -148,9 +148,9 @@ class MeasureTabWidget(QWidget):
         self.meas_worker = MeasureWorker()
         self.meas_worker.moveToThread(self.meas_thread)
 
-        config.KEITHLEY_MEAS = True
+        state.KEITHLEY_MEAS = True
         self.freq2curr()
-        config.KEITHLEY_CURRENT_POINTS = self.keithleyCurrentPoints.value()
+        state.KEITHLEY_CURRENT_POINTS = self.keithleyCurrentPoints.value()
 
         self.meas_thread.started.connect(self.meas_worker.run)
         self.meas_worker.finished.connect(self.meas_thread.quit)
@@ -167,7 +167,7 @@ class MeasureTabWidget(QWidget):
         self.meas_thread.finished.connect(lambda: self.btnStopMeas.setEnabled(False))
 
     def stop_meas(self):
-        config.KEITHLEY_MEAS = False
+        state.KEITHLEY_MEAS = False
 
     def save_meas(self, results: dict):
         try:
@@ -178,17 +178,17 @@ class MeasureTabWidget(QWidget):
             pass
 
     def freq2curr(self):
-        config.KEITHLEY_CURRENT_FROM = linear(
-            self.keithleyFreqFrom.value() * 1e9, *config.CALIBRATION_FREQ_2_CURR
+        state.KEITHLEY_CURRENT_FROM = linear(
+            self.keithleyFreqFrom.value() * 1e9, *state.CALIBRATION_FREQ_2_CURR
         )
-        config.KEITHLEY_CURRENT_TO = linear(
-            self.keithleyFreqTo.value() * 1e9, *config.CALIBRATION_FREQ_2_CURR
+        state.KEITHLEY_CURRENT_TO = linear(
+            self.keithleyFreqTo.value() * 1e9, *state.CALIBRATION_FREQ_2_CURR
         )
         self.keithleyCurrentFromLabel.setText(
-            f"~ {round(config.KEITHLEY_CURRENT_FROM, 4)} [A]"
+            f"~ {round(state.KEITHLEY_CURRENT_FROM, 4)} [A]"
         )
         self.keithleyCurrentToLabel.setText(
-            f"~ {round(config.KEITHLEY_CURRENT_TO, 4)} [A]"
+            f"~ {round(state.KEITHLEY_CURRENT_TO, 4)} [A]"
         )
 
     def show_measure_graph_window(self, results: dict):

@@ -1,6 +1,6 @@
 from api.prologixEthernet import PrologixGPIBEthernet
 from api.prologixUsb import PrologixGPIBUsb
-from config import config
+from state import state
 from utils.classes import InstrumentGPIBBlockInterface, InstrumentAdapterInterface
 from utils.decorators import exception
 
@@ -8,9 +8,9 @@ from utils.decorators import exception
 class SpectrumBlock(InstrumentGPIBBlockInterface):
     def __init__(
         self,
-        prologix_address: int = config.PROLOGIX_ADDRESS,
-        prologix_ip: str = config.PROLOGIX_IP,
-        address: int = config.SPECTRUM_ADDRESS,
+        prologix_address: int = state.PROLOGIX_ADDRESS,
+        prologix_ip: str = state.PROLOGIX_IP,
+        address: int = state.SPECTRUM_ADDRESS,
         use_ethernet: bool = True,
     ):
         self.instr = None

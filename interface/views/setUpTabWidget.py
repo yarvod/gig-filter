@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_fsek30 import SpectrumBlock
 from api.rs_nrx import NRXBlock
-from config import config
+from state import state
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +27,10 @@ class KeithleyWorker(QObject):
 
     def run(self):
         keithley = KeithleyBlock(
-            address=config.KEITHLEY_ADDRESS, prologix_ip=config.PROLOGIX_IP
+            address=state.KEITHLEY_ADDRESS, prologix_ip=state.PROLOGIX_IP
         )
         result = keithley.test()
-        status = config.KEITHLEY_TEST_MAP.get(result, "Undefined Error")
+        status = state.KEITHLEY_TEST_MAP.get(result, "Undefined Error")
         self.status.emit(status)
         self.finished.emit()
 
@@ -41,7 +41,7 @@ class RsSpectrumWorker(QObject):
 
     def run(self):
         spectrum = SpectrumBlock(
-            address=config.SPECTRUM_ADDRESS,
+            address=state.SPECTRUM_ADDRESS,
         )
         result = spectrum.idn()
         status = "Ok" if "FSEK" in result else "Undefined Error"
@@ -51,13 +51,13 @@ class RsSpectrumWorker(QObject):
 
 class KeithleyOutputWorker(QObject):
     finished = pyqtSignal()
-    state = pyqtSignal(str)
+    keithley_state = pyqtSignal(str)
 
     def run(self):
-        keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
-        keithley.set_output_state(state=config.KEITHLEY_OUTPUT_STATE)
-        state = keithley.get_output_state()
-        self.state.emit(state)
+        keithley = KeithleyBlock(address=state.KEITHLEY_ADDRESS)
+        keithley.set_output_state(state=state.KEITHLEY_OUTPUT_STATE)
+        keithley_state = keithley.get_output_state()
+        self.keithley_state.emit(keithley_state)
         self.finished.emit()
 
 
@@ -67,12 +67,12 @@ class NRXBlockWorker(QObject):
 
     def run(self):
         block = NRXBlock(
-            ip=config.NRX_IP,
-            aperture_time=config.NRX_APER_TIME,
+            ip=state.NRX_IP,
+            aperture_time=state.NRX_APER_TIME,
         )
         result = block.test()
         block.close()
-        self.status.emit(config.NRX_TEST_MAP.get(result, "Error"))
+        self.status.emit(state.NRX_TEST_MAP.get(result, "Error"))
         self.finished.emit()
 
 
@@ -101,14 +101,14 @@ class SetUpTabWidget(QWidget):
         self.nrxIPLabel = QLabel(self)
         self.nrxIPLabel.setText("PM IP:")
         self.nrxIP = QLineEdit(self)
-        self.nrxIP.setText(config.NRX_IP)
+        self.nrxIP.setText(state.NRX_IP)
 
         self.nrxAperTimeLabel = QLabel(self)
         self.nrxAperTimeLabel.setText("PM Averaging time, s:")
         self.nrxAperTime = QDoubleSpinBox(self)
         self.nrxAperTime.setDecimals(5)
         self.nrxAperTime.setRange(1e-5, 1000)
-        self.nrxAperTime.setValue(config.NRX_APER_TIME)
+        self.nrxAperTime.setValue(state.NRX_APER_TIME)
 
         self.nrxStatusLabel = QLabel(self)
         self.nrxStatusLabel.setText("PM status:")
@@ -140,7 +140,7 @@ class SetUpTabWidget(QWidget):
         self.keithleyAddress = QDoubleSpinBox(self)
         self.keithleyAddress.setRange(0, 31)
         self.keithleyAddress.setDecimals(0)
-        self.keithleyAddress.setValue(config.KEITHLEY_ADDRESS)
+        self.keithleyAddress.setValue(state.KEITHLEY_ADDRESS)
 
         self.keithleyStatusLabel = QLabel(self)
         self.keithleyStatusLabel.setText("Power supply status:")
@@ -181,7 +181,7 @@ class SetUpTabWidget(QWidget):
         self.rsSpectrumAddress = QDoubleSpinBox(self)
         self.rsSpectrumAddress.setRange(0, 31)
         self.rsSpectrumAddress.setDecimals(0)
-        self.rsSpectrumAddress.setValue(config.SPECTRUM_ADDRESS)
+        self.rsSpectrumAddress.setValue(state.SPECTRUM_ADDRESS)
 
         self.rsSpectrumStatusLabel = QLabel(self)
         self.rsSpectrumStatusLabel.setText("RS Spectrum status:")
@@ -199,15 +199,15 @@ class SetUpTabWidget(QWidget):
 
         self.groupRsSpectrum.setLayout(layout)
 
-    def set_keithley_btn_state(self, state: str):
-        text = config.KEITHLEY_OUTPUT_STATE_MAP.get(state)
+    def set_keithley_btn_state(self, keithley_state: str):
+        text = state.KEITHLEY_OUTPUT_STATE_MAP.get(keithley_state)
         self.btnKeithleyState.setText(f"{text}")
 
     def set_keithley_state(self):
         self.keithley_state_thread = QThread()
         self.keithley_state_worker = KeithleyOutputWorker()
 
-        config.KEITHLEY_OUTPUT_STATE = config.KEITHLEY_OUTPUT_STATE_MAP_REVERSE.get(
+        state.KEITHLEY_OUTPUT_STATE = state.KEITHLEY_OUTPUT_STATE_MAP_REVERSE.get(
             self.btnKeithleyState.text(), "0"
         )
 
@@ -220,7 +220,7 @@ class SetUpTabWidget(QWidget):
         self.keithley_state_thread.finished.connect(
             self.keithley_state_thread.deleteLater
         )
-        self.keithley_state_worker.state.connect(self.set_keithley_btn_state)
+        self.keithley_state_worker.keithley_state.connect(self.set_keithley_btn_state)
         self.keithley_state_thread.start()
 
         self.btnKeithleyState.setEnabled(False)
@@ -235,8 +235,8 @@ class SetUpTabWidget(QWidget):
         self.nrx_thread = QThread()
         self.nrx_worker = NRXBlockWorker()
 
-        config.NRX_IP = self.nrxIP.text()
-        config.NRX_APER_TIME = self.nrxAperTime.value()
+        state.NRX_IP = self.nrxIP.text()
+        state.NRX_APER_TIME = self.nrxAperTime.value()
 
         self.nrx_worker.moveToThread(self.nrx_thread)
         self.nrx_thread.started.connect(self.nrx_worker.run)
@@ -256,7 +256,7 @@ class SetUpTabWidget(QWidget):
         self.keithley_thread = QThread()
         self.keithley_worker = KeithleyWorker()
 
-        config.KEITHLEY_ADDRESS = int(self.keithleyAddress.value())
+        state.KEITHLEY_ADDRESS = int(self.keithleyAddress.value())
 
         self.keithley_worker.moveToThread(self.keithley_thread)
         self.keithley_thread.started.connect(self.keithley_worker.run)
@@ -275,7 +275,7 @@ class SetUpTabWidget(QWidget):
         self.rs_spectrum_thread = QThread()
         self.rs_spectrum_worker = RsSpectrumWorker()
 
-        config.SPECTRUM_ADDRESS = int(self.rsSpectrumAddress.value())
+        state.SPECTRUM_ADDRESS = int(self.rsSpectrumAddress.value())
 
         self.rs_spectrum_worker.moveToThread(self.rs_spectrum_thread)
         self.rs_spectrum_thread.started.connect(self.rs_spectrum_worker.run)

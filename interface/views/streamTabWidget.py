@@ -11,26 +11,27 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QDoubleSpinBox,
     QSizePolicy,
+    QCheckBox,
 )
 
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_nrx import NRXBlock
-from config import config
+from interface.windows.nrxStreamGraphWindow import NRXStreamGraphWindow
+from state import state
 from utils.functions import linear
 
 logger = logging.getLogger(__name__)
 
 
-class KeithleyStreamWorker(QObject):
-    finished = pyqtSignal()
+class KeithleyStreamThread(QThread):
     current_get = pyqtSignal(float)
     voltage_get = pyqtSignal(float)
 
     def run(self):
         keithley = KeithleyBlock(
-            address=config.KEITHLEY_ADDRESS, prologix_ip=config.PROLOGIX_IP
+            address=state.KEITHLEY_ADDRESS, prologix_ip=state.PROLOGIX_IP
         )
-        while config.KEITHLEY_STREAM:
+        while state.KEITHLEY_STREAM_THREAD:
             time.sleep(0.2)
             current_get = keithley.get_current()
             self.current_get.emit(current_get)
@@ -38,48 +39,81 @@ class KeithleyStreamWorker(QObject):
             self.voltage_get.emit(voltage_get)
         self.finished.emit()
 
+    def terminate(self) -> None:
+        state.KEITHLEY_STREAM_THREAD = False
+        super().terminate()
+        logger.info(f"[{self.__class__.__name__}.terminate] Terminated")
 
-class KeithleySetCurrentWorker(QObject):
-    finished = pyqtSignal()
+    def exit(self, returnCode: int = ...) -> None:
+        state.KEITHLEY_STREAM_THREAD = False
+        super().exit(returnCode)
+        logger.info(f"[{self.__class__.__name__}.exit] Exited")
 
+    def quit(self) -> None:
+        state.KEITHLEY_STREAM_THREAD = False
+        super().quit()
+        logger.info(f"[{self.__class__.__name__}.quit] Quited")
+
+
+class KeithleySetCurrentThread(QThread):
     def run(self):
         keithley = KeithleyBlock(
-            address=config.KEITHLEY_ADDRESS, prologix_ip=config.PROLOGIX_IP
+            address=state.KEITHLEY_ADDRESS, prologix_ip=state.PROLOGIX_IP
         )
-        keithley.set_current(config.KEITHLEY_CURRENT_SET)
+        keithley.set_current(state.KEITHLEY_CURRENT_SET)
         self.finished.emit()
 
 
-class KeithleySetVoltageWorker(QObject):
-    finished = pyqtSignal()
+class KeithleySetVoltageThread(QThread):
+    def run(self):
+        keithley = KeithleyBlock(address=state.KEITHLEY_ADDRESS)
+        keithley.set_voltage(state.KEITHLEY_VOLTAGE_SET)
+        self.finished.emit()
+
+
+class NRXBlockStreamThread(QThread):
+    meas = pyqtSignal(dict)
 
     def run(self):
-        keithley = KeithleyBlock(address=config.KEITHLEY_ADDRESS)
-        keithley.set_voltage(config.KEITHLEY_VOLTAGE_SET)
-        self.finished.emit()
-
-
-class NRXBlockStreamWorker(QObject):
-    finished = pyqtSignal()
-    power = pyqtSignal(float)
-
-    def run(self):
-        block = NRXBlock(
-            ip=config.NRX_IP,
-            filter_time=config.NRX_FILTER_TIME,
-            aperture_time=config.NRX_APER_TIME,
+        nrx = NRXBlock(
+            ip=state.NRX_IP,
+            filter_time=state.NRX_FILTER_TIME,
+            aperture_time=state.NRX_APER_TIME,
         )
-        while config.NRX_STREAM:
-            power = block.get_power()
-            self.power.emit(power)
-        block.close()
+        i = 0
+        start_time = time.time()
+        while state.NRX_STREAM_THREAD:
+            power = nrx.get_power()
+            meas_time = time.time() - start_time
+            if not power:
+                time.sleep(2)
+                continue
+
+            self.meas.emit({"power": power, "time": meas_time, "reset": i == 0})
+            i += 1
         self.finished.emit()
+
+    def terminate(self) -> None:
+        state.NRX_STREAM_THREAD = False
+        super().terminate()
+        logger.info(f"[{self.__class__.__name__}.terminate] Terminated")
+
+    def exit(self, returnCode: int = ...) -> None:
+        state.NRX_STREAM_THREAD = False
+        super().exit(returnCode)
+        logger.info(f"[{self.__class__.__name__}.exit] Exited")
+
+    def quit(self) -> None:
+        state.NRX_STREAM_THREAD = False
+        super().quit()
+        logger.info(f"[{self.__class__.__name__}.quit] Quited")
 
 
 class StreamTabWidget(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
         self.layout = QVBoxLayout(self)
+        self.powerStreamGraphWindow = None
         self.createGroupNRX()
         self.createGroupKeithley()
         self.layout.addWidget(self.groupNRX)
@@ -90,7 +124,7 @@ class StreamTabWidget(QWidget):
         self.curr2freq()
 
     def createGroupNRX(self):
-        self.groupNRX = QGroupBox("NRX monitor")
+        self.groupNRX = QGroupBox("Power meter monitor")
         self.groupNRX.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -108,6 +142,16 @@ class StreamTabWidget(QWidget):
         self.btnStopStreamNRX.setEnabled(False)
         self.btnStopStreamNRX.clicked.connect(self.stop_stream_nrx)
 
+        self.checkNRXStreamPlot = QCheckBox(self)
+        self.checkNRXStreamPlot.setText("Plot stream time line")
+
+        self.nrxStreamPlotPointsLabel = QLabel(self)
+        self.nrxStreamPlotPointsLabel.setText("Window points")
+        self.nrxStreamPlotPoints = QDoubleSpinBox(self)
+        self.nrxStreamPlotPoints.setRange(10, 1000)
+        self.nrxStreamPlotPoints.setDecimals(0)
+        self.nrxStreamPlotPoints.setValue(state.NRX_STREAM_GRAPH_POINTS)
+
         layout.addWidget(
             self.nrxPowerLabel, 1, 0, alignment=Qt.AlignmentFlag.AlignCenter
         )
@@ -118,7 +162,15 @@ class StreamTabWidget(QWidget):
         layout.addWidget(
             self.btnStopStreamNRX, 2, 1, alignment=Qt.AlignmentFlag.AlignCenter
         )
-
+        layout.addWidget(
+            self.checkNRXStreamPlot, 3, 0, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        layout.addWidget(
+            self.nrxStreamPlotPointsLabel, 4, 0, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        layout.addWidget(
+            self.nrxStreamPlotPoints, 4, 1, alignment=Qt.AlignmentFlag.AlignCenter
+        )
         self.groupNRX.setLayout(layout)
 
     def createGroupKeithley(self):
@@ -196,24 +248,10 @@ class StreamTabWidget(QWidget):
         self.groupKeithley.setLayout(layout)
 
     def keithley_set_current(self):
-        self.keithley_set_current_thread = QThread()
-        self.keithley_set_current_worker = KeithleySetCurrentWorker()
-        self.keithley_set_current_worker.moveToThread(self.keithley_set_current_thread)
+        self.keithley_set_current_thread = KeithleySetCurrentThread()
 
-        config.KEITHLEY_CURRENT_SET = self.keithleyCurrentSet.value()
+        state.KEITHLEY_CURRENT_SET = self.keithleyCurrentSet.value()
 
-        self.keithley_set_current_thread.started.connect(
-            self.keithley_set_current_worker.run
-        )
-        self.keithley_set_current_worker.finished.connect(
-            self.keithley_set_current_thread.quit
-        )
-        self.keithley_set_current_worker.finished.connect(
-            self.keithley_set_current_worker.deleteLater
-        )
-        self.keithley_set_current_thread.finished.connect(
-            self.keithley_set_current_thread.deleteLater
-        )
         self.keithley_set_current_thread.start()
 
         self.btnKeithleyCurrentSet.setEnabled(False)
@@ -222,28 +260,14 @@ class StreamTabWidget(QWidget):
         )
 
     def curr2freq(self):
-        freq = linear(self.keithleyCurrentSet.value(), *config.CALIBRATION_CURR_2_FREQ)
+        freq = linear(self.keithleyCurrentSet.value(), *state.CALIBRATION_CURR_2_FREQ)
         self.keithleyFreq.setText(f"~ {round(freq / 1e9, 2)} [GHz]")
 
     def keithley_set_voltage(self):
-        self.keithley_set_voltage_thread = QThread()
-        self.keithley_set_voltage_worker = KeithleySetVoltageWorker()
-        self.keithley_set_voltage_worker.moveToThread(self.keithley_set_voltage_thread)
+        self.keithley_set_voltage_thread = KeithleySetVoltageThread()
 
-        config.KEITHLEY_VOLTAGE_SET = self.keithleyVoltageSet.value()
+        state.KEITHLEY_VOLTAGE_SET = self.keithleyVoltageSet.value()
 
-        self.keithley_set_voltage_thread.started.connect(
-            self.keithley_set_voltage_worker.run
-        )
-        self.keithley_set_voltage_worker.finished.connect(
-            self.keithley_set_voltage_thread.quit
-        )
-        self.keithley_set_voltage_worker.finished.connect(
-            self.keithley_set_voltage_worker.deleteLater
-        )
-        self.keithley_set_voltage_thread.finished.connect(
-            self.keithley_set_voltage_thread.deleteLater
-        )
         self.keithley_set_voltage_thread.start()
 
         self.btnKeithleyVoltageSet.setEnabled(False)
@@ -252,24 +276,14 @@ class StreamTabWidget(QWidget):
         )
 
     def start_stream_keithley(self):
-        self.keithley_stream_thread = QThread()
-        self.keithley_stream_worker = KeithleyStreamWorker()
-        self.keithley_stream_worker.moveToThread(self.keithley_stream_thread)
+        self.keithley_stream_thread = KeithleyStreamThread()
 
-        config.KEITHLEY_STREAM = True
+        state.KEITHLEY_STREAM_THREAD = True
 
-        self.keithley_stream_thread.started.connect(self.keithley_stream_worker.run)
-        self.keithley_stream_worker.finished.connect(self.keithley_stream_thread.quit)
-        self.keithley_stream_worker.finished.connect(
-            self.keithley_stream_worker.deleteLater
-        )
-        self.keithley_stream_thread.finished.connect(
-            self.keithley_stream_thread.deleteLater
-        )
-        self.keithley_stream_worker.current_get.connect(
+        self.keithley_stream_thread.current_get.connect(
             lambda x: self.keithleyCurrentGet.setText(f"{round(x, 4)}")
         )
-        self.keithley_stream_worker.voltage_get.connect(
+        self.keithley_stream_thread.voltage_get.connect(
             lambda x: self.keithleyVoltageGet.setText(f"{round(x, 4)}")
         )
         self.keithley_stream_thread.start()
@@ -285,22 +299,16 @@ class StreamTabWidget(QWidget):
         )
 
     def stop_stream_keithley(self):
-        config.KEITHLEY_STREAM = False
+        self.keithley_stream_thread.terminate()
 
     def start_stream_nrx(self):
-        self.nrx_stream_thread = QThread()
-        self.nrx_stream_worker = NRXBlockStreamWorker()
-        self.nrx_stream_worker.moveToThread(self.nrx_stream_thread)
+        self.nrx_stream_thread = NRXBlockStreamThread()
 
-        config.NRX_STREAM = True
+        state.NRX_STREAM_THREAD = True
+        state.NRX_STREAM_PLOT_GRAPH = self.checkNRXStreamPlot.isChecked()
+        state.NRX_STREAM_GRAPH_POINTS = int(self.nrxStreamPlotPoints.value())
 
-        self.nrx_stream_thread.started.connect(self.nrx_stream_worker.run)
-        self.nrx_stream_worker.finished.connect(self.nrx_stream_thread.quit)
-        self.nrx_stream_worker.finished.connect(self.nrx_stream_worker.deleteLater)
-        self.nrx_stream_thread.finished.connect(self.nrx_stream_thread.deleteLater)
-        self.nrx_stream_worker.power.connect(
-            lambda x: self.nrxPower.setText(f"{round(x, 3)}")
-        )
+        self.nrx_stream_thread.meas.connect(self.update_nrx_stream_values)
         self.nrx_stream_thread.start()
 
         self.btnStartStreamNRX.setEnabled(False)
@@ -313,5 +321,21 @@ class StreamTabWidget(QWidget):
             lambda: self.btnStopStreamNRX.setEnabled(False)
         )
 
+    def show_power_stream_graph(self, x: float, y: float, reset: bool = True):
+        if self.powerStreamGraphWindow is None:
+            self.powerStreamGraphWindow = NRXStreamGraphWindow()
+        self.powerStreamGraphWindow.plotNew(x=x, y=y, reset_data=reset)
+        self.powerStreamGraphWindow.show()
+
+    def update_nrx_stream_values(self, measure: dict):
+        self.nrxPower.setText(f"{round(measure.get('power'), 3)}")
+        if state.NRX_STREAM_PLOT_GRAPH:
+            self.show_power_stream_graph(
+                x=measure.get("time"),
+                y=measure.get("power"),
+                reset=measure.get("reset"),
+            )
+
     def stop_stream_nrx(self):
-        config.NRX_STREAM = False
+        self.nrx_stream_thread.quit()
+        self.nrx_stream_thread.exit(0)

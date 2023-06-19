@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
 
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_fsek30 import SpectrumBlock
-from config import config
+from state import state
 from interface.windows.calibrationGraphWindow import CalibrationGraphWindow
 from utils.functions import linear, linear_fit
 
@@ -32,10 +32,10 @@ class CalibrateWorker(QObject):
 
     def run(self):
         dc_block = KeithleyBlock(
-            prologix_ip=config.PROLOGIX_IP, address=config.KEITHLEY_ADDRESS
+            prologix_ip=state.PROLOGIX_IP, address=state.KEITHLEY_ADDRESS
         )
         s_block = SpectrumBlock(
-            prologix_ip=config.PROLOGIX_IP, address=config.SPECTRUM_ADDRESS
+            prologix_ip=state.PROLOGIX_IP, address=state.SPECTRUM_ADDRESS
         )
 
         results = {
@@ -47,17 +47,17 @@ class CalibrateWorker(QObject):
         }
         current_range = list(
             np.linspace(
-                config.KEITHLEY_CURRENT_FROM,
-                config.KEITHLEY_CURRENT_TO,
-                int(config.KEITHLEY_CURRENT_POINTS),
+                state.KEITHLEY_CURRENT_FROM,
+                state.KEITHLEY_CURRENT_TO,
+                int(state.KEITHLEY_CURRENT_POINTS),
             )
         )
         current_range.extend(
             list(
                 np.linspace(
-                    config.KEITHLEY_CURRENT_TO,
-                    config.KEITHLEY_CURRENT_FROM,
-                    int(config.KEITHLEY_CURRENT_POINTS),
+                    state.KEITHLEY_CURRENT_TO,
+                    state.KEITHLEY_CURRENT_FROM,
+                    int(state.KEITHLEY_CURRENT_POINTS),
                 )
             )
         )
@@ -65,10 +65,10 @@ class CalibrateWorker(QObject):
         initial_current = dc_block.get_setted_current()
 
         for step, current in enumerate(current_range, 1):
-            if not config.CALIBRATION_MEAS:
+            if not state.CALIBRATION_MEAS:
                 break
             dc_block.set_current(current)
-            time.sleep(config.CALIBRATION_STEP_DELAY)
+            time.sleep(state.CALIBRATION_STEP_DELAY)
             if step == 1:
                 time.sleep(0.4)
             current_get = dc_block.get_current()
@@ -90,7 +90,7 @@ class CalibrateWorker(QObject):
                 }
             )
 
-            proc = round(step / config.KEITHLEY_CURRENT_POINTS * 100, 2)
+            proc = round(step / state.KEITHLEY_CURRENT_POINTS * 100, 2)
             logger.info(f"[{proc} %]")
 
         dc_block.set_current(initial_current)
@@ -122,7 +122,7 @@ class CalibrationTabWidget(QWidget):
         self.keithleyCurrentFromLabel = QLabel("Current from, A")
         self.keithleyCurrentFrom = QDoubleSpinBox(self)
         self.keithleyCurrentFrom.setRange(0, 5)
-        self.keithleyCurrentFrom.setValue(config.KEITHLEY_CURRENT_FROM)
+        self.keithleyCurrentFrom.setValue(state.KEITHLEY_CURRENT_FROM)
         self.keithleyCurrentFrom.valueChanged.connect(self.curr2freq)
 
         self.keithleyFreqFrom = QLabel("~ 0 [GHz]")
@@ -130,7 +130,7 @@ class CalibrationTabWidget(QWidget):
         self.keithleyCurrentToLabel = QLabel("Current to, A")
         self.keithleyCurrentTo = QDoubleSpinBox(self)
         self.keithleyCurrentTo.setRange(0, 5)
-        self.keithleyCurrentTo.setValue(config.KEITHLEY_CURRENT_TO)
+        self.keithleyCurrentTo.setValue(state.KEITHLEY_CURRENT_TO)
         self.keithleyCurrentTo.valueChanged.connect(self.curr2freq)
 
         self.keithleyFreqTo = QLabel("~ 0 [GHz]")
@@ -139,12 +139,12 @@ class CalibrationTabWidget(QWidget):
         self.keithleyCurrentPoints = QDoubleSpinBox(self)
         self.keithleyCurrentPoints.setRange(0, 1001)
         self.keithleyCurrentPoints.setDecimals(0)
-        self.keithleyCurrentPoints.setValue(config.KEITHLEY_CURRENT_POINTS)
+        self.keithleyCurrentPoints.setValue(state.KEITHLEY_CURRENT_POINTS)
 
         self.calibrationStepDelayLabel = QLabel("Step delay, s")
         self.calibrationStepDelay = QDoubleSpinBox(self)
         self.calibrationStepDelay.setRange(0, 10)
-        self.calibrationStepDelay.setValue(config.CALIBRATION_STEP_DELAY)
+        self.calibrationStepDelay.setValue(state.CALIBRATION_STEP_DELAY)
 
         self.btnStartMeas = QPushButton("Start Calibration")
         self.btnStartMeas.clicked.connect(self.start_calibration)
@@ -174,7 +174,7 @@ class CalibrationTabWidget(QWidget):
         )
         layout = QGridLayout()
 
-        self.calibrationFilePath = QLabel(f"{config.CALIBRATION_FILE}")
+        self.calibrationFilePath = QLabel(f"{state.CALIBRATION_FILE}")
         self.btnChooseCalibrationFile = QPushButton("Choose file")
         self.btnChooseCalibrationFile.clicked.connect(self.chooseCalibrationFile)
 
@@ -192,11 +192,11 @@ class CalibrationTabWidget(QWidget):
         self.calibration_worker = CalibrateWorker()
         self.calibration_worker.moveToThread(self.calibration_thread)
 
-        config.CALIBRATION_MEAS = True
-        config.KEITHLEY_CURRENT_FROM = self.keithleyCurrentFrom.value()
-        config.KEITHLEY_CURRENT_TO = self.keithleyCurrentTo.value()
-        config.KEITHLEY_CURRENT_POINTS = self.keithleyCurrentPoints.value()
-        config.CALIBRATION_STEP_DELAY = self.calibrationStepDelay.value()
+        state.CALIBRATION_MEAS = True
+        state.KEITHLEY_CURRENT_FROM = self.keithleyCurrentFrom.value()
+        state.KEITHLEY_CURRENT_TO = self.keithleyCurrentTo.value()
+        state.KEITHLEY_CURRENT_POINTS = self.keithleyCurrentPoints.value()
+        state.CALIBRATION_STEP_DELAY = self.calibrationStepDelay.value()
 
         self.calibration_thread.started.connect(self.calibration_worker.run)
         self.calibration_worker.finished.connect(self.calibration_thread.quit)
@@ -219,13 +219,13 @@ class CalibrationTabWidget(QWidget):
         )
 
     def stop_calibration(self):
-        config.CALIBRATION_MEAS = False
+        state.CALIBRATION_MEAS = False
 
     def save_calibration(self, results: dict):
         opt_1 = linear_fit(results["freq"], results["current_get"])
         opt_2 = linear_fit(results["current_get"], results["freq"])
-        config.CALIBRATION_FREQ_2_CURR = list(opt_1)
-        config.CALIBRATION_CURR_2_FREQ = list(opt_2)
+        state.CALIBRATION_FREQ_2_CURR = list(opt_1)
+        state.CALIBRATION_CURR_2_FREQ = list(opt_2)
         try:
             filepath = QFileDialog.getSaveFileName(
                 caption="Save calibration file", filter=".csv"
@@ -244,16 +244,16 @@ class CalibrationTabWidget(QWidget):
             )[0]
             if filepath:
                 self.calibrationFilePath.setText(f"{filepath}")
-                config.CALIBRATION_FILE = filepath
+                state.CALIBRATION_FILE = filepath
         except (IndexError, FileNotFoundError):
             return
 
     def apply_calibration(self):
-        calibration = pd.read_csv(config.CALIBRATION_FILE)
+        calibration = pd.read_csv(state.CALIBRATION_FILE)
         opt_1 = linear_fit(calibration["frequency"], calibration["current"])
         opt_2 = linear_fit(calibration["current"], calibration["frequency"])
-        config.CALIBRATION_FREQ_2_CURR = list(opt_1)
-        config.CALIBRATION_CURR_2_FREQ = list(opt_2)
+        state.CALIBRATION_FREQ_2_CURR = list(opt_1)
+        state.CALIBRATION_CURR_2_FREQ = list(opt_2)
 
     def show_calibration_graph_window(self, results: dict):
         if self.calibrationGraphWindow is None:
@@ -267,10 +267,8 @@ class CalibrationTabWidget(QWidget):
 
     def curr2freq(self):
         freq_from = linear(
-            self.keithleyCurrentFrom.value(), *config.CALIBRATION_CURR_2_FREQ
+            self.keithleyCurrentFrom.value(), *state.CALIBRATION_CURR_2_FREQ
         )
         self.keithleyFreqFrom.setText(f"~ {round(freq_from / 1e9, 2)} [GHz]")
-        freq_to = linear(
-            self.keithleyCurrentTo.value(), *config.CALIBRATION_CURR_2_FREQ
-        )
+        freq_to = linear(self.keithleyCurrentTo.value(), *state.CALIBRATION_CURR_2_FREQ)
         self.keithleyFreqTo.setText(f"~ {round(freq_to / 1e9, 2)} [GHz]")

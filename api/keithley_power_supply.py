@@ -1,6 +1,6 @@
 from api.prologixEthernet import PrologixGPIBEthernet
 from api.prologixUsb import PrologixGPIBUsb
-from config import config
+from state import state
 from utils.classes import InstrumentAdapterInterface, InstrumentGPIBBlockInterface
 from utils.decorators import visa_exception
 
@@ -8,9 +8,9 @@ from utils.decorators import visa_exception
 class KeithleyBlock(InstrumentGPIBBlockInterface):
     def __init__(
         self,
-        prologix_address: int = config.PROLOGIX_ADDRESS,
-        prologix_ip: str = config.PROLOGIX_IP,
-        address: int = config.KEITHLEY_ADDRESS,
+        prologix_address: int = state.PROLOGIX_ADDRESS,
+        prologix_ip: str = state.PROLOGIX_IP,
+        address: int = state.KEITHLEY_ADDRESS,
         use_ethernet: bool = True,
     ):
         self.instr = None
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     block = KeithleyBlock()
     res = block.test()
     print(f"res {res}")
-    print(config.KEITHLEY_TEST_MAP[res])
+    print(state.KEITHLEY_TEST_MAP[res])
     print(block.get_output_state())
     print(block.get_current())
     print(block.get_voltage())

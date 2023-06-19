@@ -1,6 +1,6 @@
 from RsInstrument import *
 
-from config import config
+from state import state
 from utils.decorators import exception
 from utils.logger import logger
 
@@ -8,9 +8,9 @@ from utils.logger import logger
 class NRXBlock:
     def __init__(
         self,
-        ip: str = config.NRX_IP,
-        aperture_time: float = config.NRX_APER_TIME,
-        filter_time: float = config.NRX_FILTER_TIME,
+        ip: str = state.NRX_IP,
+        aperture_time: float = state.NRX_APER_TIME,
+        filter_time: float = state.NRX_FILTER_TIME,
     ):
         self.address = f"TCPIP::{ip}::INSTR"
         self.instr = None
@@ -73,7 +73,7 @@ class NRXBlock:
         self.instr.write(f"CALC:CHAN:AVER:STAT {state}")
 
     @exception
-    def set_filter_time(self, time: float = config.NRX_FILTER_TIME):
+    def set_filter_time(self, time: float = state.NRX_FILTER_TIME):
         """
         :param time: seconds
         :return:
@@ -81,7 +81,7 @@ class NRXBlock:
         self.instr.write(f"CALCulate:CHANnel:AVERage:COUNt:AUTO:MTIMe {time}")
 
     @exception
-    def set_aperture_time(self, time: float = config.NRX_APER_TIME):
+    def set_aperture_time(self, time: float = state.NRX_APER_TIME):
         """
         :param time: seconds
         :return:
