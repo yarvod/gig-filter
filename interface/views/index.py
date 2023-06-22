@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 
+from interface import style
 from interface.views.calibrationTabWidget import CalibrationTabWidget
 from interface.views.measureTabWidget import MeasureTabWidget
 from interface.views.streamTabWidget import StreamTabWidget
@@ -10,6 +11,7 @@ class TabsWidget(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
         self.layout = QVBoxLayout(self)
+        self.setStyleSheet(style.TABS_WIDGET_BASE_STYLE)
 
         # Initialize tab screen
         self.tabs = QTabWidget(self)
