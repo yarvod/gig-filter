@@ -65,13 +65,21 @@ QDoubleSpinBox::placeholder {
 QDoubleSpinBox::up-button {
     background: #e5d4ed;
     border-bottom: 1px solid white;
+    border-top-right-radius: 5px;
     image: url(./assets/up-arrow.png);
     width: 25px;
+}
+QDoubleSpinBox::up-button:hover {
+    background: #6d72c3;
 }
 QDoubleSpinBox::down-button {
     background: #e5d4ed;
     border-top: 1px solid white;
+    border-bottom-right-radius: 5px;
     image: url(./assets/down-arrow.png);
     width: 25px;
+}
+QDoubleSpinBox::down-button:hover {
+    background: #6d72c3;
 }
 """

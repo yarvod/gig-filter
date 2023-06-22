@@ -130,10 +130,12 @@ class StreamTabWidget(QWidget):
         )
         layout = QGridLayout()
 
-        self.nrxPowerLabel = QLabel("<h4>Power, dBm</h4>")
+        self.nrxPowerLabel = QLabel(self)
+        self.nrxPowerLabel.setText("<h4>Power, dBm</h4>")
+        self.nrxPowerLabel.setStyleSheet("color: black;")
         self.nrxPower = QLabel(self)
         self.nrxPower.setText("0.0")
-        self.nrxPower.setStyleSheet("font-size: 23px; font-weight: bold;")
+        self.nrxPower.setStyleSheet("font-size: 23px; font-weight: bold; color: black;")
 
         self.btnStartStreamNRX = Button("Start Stream")
         self.btnStartStreamNRX.clicked.connect(self.start_stream_nrx)
@@ -182,15 +184,21 @@ class StreamTabWidget(QWidget):
 
         self.keithleyVoltageGetLabel = QLabel(self)
         self.keithleyVoltageGetLabel.setText("<h4>Voltage, V</h4>")
+        self.keithleyVoltageGetLabel.setStyleSheet("color: black;")
         self.keithleyVoltageGet = QLabel(self)
         self.keithleyVoltageGet.setText("0.0")
-        self.keithleyVoltageGet.setStyleSheet("font-size: 23px; font-weight: bold;")
+        self.keithleyVoltageGet.setStyleSheet(
+            "font-size: 23px; font-weight: bold; color: black;"
+        )
 
         self.keithleyCurrentGetLabel = QLabel(self)
         self.keithleyCurrentGetLabel.setText("<h4>Current, A</h4>")
+        self.keithleyCurrentGetLabel.setStyleSheet("color: black;")
         self.keithleyCurrentGet = QLabel(self)
         self.keithleyCurrentGet.setText("0.0")
-        self.keithleyCurrentGet.setStyleSheet("font-size: 23px; font-weight: bold;")
+        self.keithleyCurrentGet.setStyleSheet(
+            "font-size: 23px; font-weight: bold; color: black;"
+        )
 
         self.btnStartStreamKeithley = Button("Start Stream")
         self.btnStartStreamKeithley.clicked.connect(self.start_stream_keithley)

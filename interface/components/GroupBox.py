@@ -2,7 +2,6 @@ from PyQt6.QtWidgets import QGroupBox
 
 
 class GroupBox(QGroupBox):
-
     def __init__(self, parent):
         super().__init__(parent)
         font = self.font()
