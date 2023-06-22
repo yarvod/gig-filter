@@ -58,7 +58,12 @@ class PrologixEthernetThread(QThread):
 
     def run(self):
         try:
-            PrologixGPIBEthernet(host=state.PROLOGIX_IP)
+            # define and close existing prologix instance
+            prologix = PrologixGPIBEthernet(host=state.PROLOGIX_IP)
+            prologix.close()
+            # Set new IP for prologix and connect again
+            prologix.host = state.PROLOGIX_IP
+            prologix.init()
             logger.info(
                 f"[{self.__class__.__name__}.run] Prologix Ethernet Initialized"
             )

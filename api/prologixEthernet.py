@@ -1,4 +1,5 @@
 import socket
+from typing import Union
 
 from utils.classes import InstrumentAdapterInterface, Singleton
 from utils.logger import logger
@@ -7,20 +8,24 @@ from utils.logger import logger
 class PrologixGPIBEthernet(InstrumentAdapterInterface, metaclass=Singleton):
     PORT = 1234
     socket = None
+    host = None
 
     def __init__(self, host: str, timeout: float = 2):
         self.host = host
         self.timeout = 0
+        self.init(timeout)
+
+    def init(self, timeout: float = 2):
         if self.socket is None:
             logger.info(
-                f"[{self.__class__.__name__}.__init__]Socket is None, creating ..."
+                f"[{self.__class__.__name__}.init]Socket is None, creating ..."
             )
             self.socket = socket.socket(
                 socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP
             )
         else:
             logger.info(
-                f"[{self.__class__.__name__}.__init__]Socket is already existed, connecting ..."
+                f"[{self.__class__.__name__}.init]Socket is already existed, connecting ..."
             )
         self.connect(timeout)
         self._setup()
@@ -35,21 +40,33 @@ class PrologixGPIBEthernet(InstrumentAdapterInterface, metaclass=Singleton):
         except OSError as e:
             logger.error(f"[{self.__class__.__name__}.connect] {e}")
 
-    def is_socket_closed(self) -> bool:
+    def is_socket_closed(self) -> Union[bool, None]:
         try:
             # this will try to read bytes without blocking and also without removing them from buffer (peek only)
             data = self.socket.recv(16)
             if len(data) == 0:
+                logger.info(
+                    f"[{self.__class__.__name__}.is_socket_closed] Socket is closed"
+                )
                 return True
         except BlockingIOError:
+            logger.info(
+                f"[{self.__class__.__name__}.is_socket_closed] BlockingIOError, socket is opened"
+            )
             return False  # socket is open and reading from it would block
         except ConnectionResetError:
+            logger.info(
+                f"[{self.__class__.__name__}.is_socket_closed] ConnectionResetError, socket is closed"
+            )
             return True  # socket was closed for some other reason
         except Exception as e:
             logger.error(
-                f"[{self.__class__.__name__}.is_socket_closed] Unexpected exception when checking if a socket is closed"
+                f"[{self.__class__.__name__}.is_socket_closed] Unexpected exception '{e}', socket status is undefined"
             )
-            return False
+            return None
+        logger.info(
+            f"[{self.__class__.__name__}.is_socket_closed] Socket is opened"
+        )
         return False
 
     def close(self):
@@ -57,7 +74,8 @@ class PrologixGPIBEthernet(InstrumentAdapterInterface, metaclass=Singleton):
             logger.warning(f"[{self.__class__.__name__}.close] Socket is None")
             return
         self.socket.close()
-        logger.info(f"[{self.__class__.__name__}.close]Socket has been closed.")
+        del self.socket
+        logger.info(f"[{self.__class__.__name__}.close] Socket has been closed.")
 
     def select(self, eq_addr):
         self._send("++addr %i" % int(eq_addr))
