@@ -3,13 +3,14 @@ from PyQt6.QtWidgets import QMainWindow
 
 from interface import style
 from interface.views.index import TabsWidget
+from state import state
 
 
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
         self.title = "YIG filter manager"
-        self.setWindowIcon(QtGui.QIcon("./assets/logo_small.ico"))
+        self.setWindowIcon(QtGui.QIcon(f"{state.BASE_DIR}/assets/logo_small.ico"))
         self.setStyleSheet(style.GLOBAL_STYLE)
         self.left = 0
         self.top = 0

@@ -2,6 +2,13 @@ import os
 
 
 class State:
+    # Base
+    BASE_DIR = ""
+    # Icons
+    WINDOW_ICON = os.path.join(BASE_DIR, "assets", "logo_small.ico")
+    UP_ARROW = os.path.join(BASE_DIR, "assets", "up-arrow.png")
+    DOWN_ARROW = os.path.join(BASE_DIR, "assets", "down-arrow.png")
+    # Instruments
     PROLOGIX_ADDRESS = 6
     KEITHLEY_ADDRESS = 22
     NRX_IP = "169.254.2.20"
