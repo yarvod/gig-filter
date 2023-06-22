@@ -1,11 +1,9 @@
 import logging
 
-from PyQt6.QtCore import QObject, pyqtSignal, QThread, Qt
-from PyQt6.QtGui import QCursor
+from PyQt6.QtCore import QObject, pyqtSignal, QThread
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
-    QGroupBox,
     QGridLayout,
     QLabel,
     QLineEdit,
@@ -18,6 +16,7 @@ from api.prologixEthernet import PrologixGPIBEthernet
 from api.rs_fsek30 import SpectrumBlock
 from api.rs_nrx import NRXBlock
 from interface.components.Button import Button
+from interface.components.GroupBox import GroupBox
 from state import state
 
 logger = logging.getLogger(__name__)
@@ -124,7 +123,7 @@ class SetUpTabWidget(QWidget):
         self.setLayout(self.layout)
 
     def createGroupNRX(self):
-        self.groupNRX = QGroupBox("Power meter config")
+        self.groupNRX = GroupBox("Power meter config")
         self.groupNRX.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -161,7 +160,7 @@ class SetUpTabWidget(QWidget):
         self.groupNRX.setLayout(layout)
 
     def createGroupPrologixEthernet(self):
-        self.groupPrologixEthernet = QGroupBox("Prologix Ethernet config")
+        self.groupPrologixEthernet = GroupBox("Prologix Ethernet config")
         self.groupPrologixEthernet.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -189,7 +188,7 @@ class SetUpTabWidget(QWidget):
         self.groupPrologixEthernet.setLayout(layout)
 
     def createGroupKeithley(self):
-        self.groupKeithley = QGroupBox("Power supply config")
+        self.groupKeithley = GroupBox("Power supply config")
         self.groupKeithley.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -210,7 +209,8 @@ class SetUpTabWidget(QWidget):
         self.btnInitKeithley = Button("Initialize Power supply")
         self.btnInitKeithley.clicked.connect(self.initialize_keithley)
 
-        self.keithleyStateLabel = QLabel("Output On/Off:")
+        self.keithleyStateLabel = QLabel(self)
+        self.keithleyStateLabel.setText("Output On/Off:")
 
         self.btnKeithleyState = Button("Off")
         self.btnKeithleyState.clicked.connect(self.set_keithley_state)
@@ -230,7 +230,7 @@ class SetUpTabWidget(QWidget):
         self.groupKeithley.setLayout(layout)
 
     def createGroupRsSpectrumAnalyzer(self):
-        self.groupRsSpectrum = QGroupBox("Spectrum Analyzer RS FSEK config")
+        self.groupRsSpectrum = GroupBox("Spectrum Analyzer RS FSEK config")
         self.groupRsSpectrum.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )

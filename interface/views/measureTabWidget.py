@@ -7,10 +7,8 @@ from PyQt6.QtCore import QObject, pyqtSignal, QThread
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
-    QGroupBox,
     QGridLayout,
     QLabel,
-    QPushButton,
     QDoubleSpinBox,
     QFileDialog,
     QSizePolicy,
@@ -19,6 +17,7 @@ from PyQt6.QtWidgets import (
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_nrx import NRXBlock
 from interface.components.Button import Button
+from interface.components.GroupBox import GroupBox
 from state import state
 from interface.windows.measureGraphWindow import MeasureGraphWindow
 from utils.functions import linear
@@ -95,30 +94,35 @@ class MeasureTabWidget(QWidget):
         self.setLayout(self.layout)
 
     def createGroupMeas(self):
-        self.groupMeas = QGroupBox("Measure params")
+        self.groupMeas = GroupBox("Measure params")
         self.groupMeas.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
         layout = QGridLayout()
 
-        self.keithleyFreqFromLabel = QLabel("Frequency from, GHz")
+        self.keithleyFreqFromLabel = QLabel(self)
+        self.keithleyFreqFromLabel.setText("Frequency from, GHz")
         self.keithleyFreqFrom = QDoubleSpinBox(self)
         self.keithleyFreqFrom.setRange(0, 20)
         self.keithleyFreqFrom.setDecimals(3)
         self.keithleyFreqFrom.setValue(state.KEITHLEY_FREQ_FROM)
         self.keithleyFreqFrom.valueChanged.connect(self.freq2curr)
 
-        self.keithleyFreqToLabel = QLabel("Frequency to, GHz")
+        self.keithleyFreqToLabel = QLabel(self)
+        self.keithleyFreqToLabel.setText("Frequency to, GHz")
         self.keithleyFreqTo = QDoubleSpinBox(self)
         self.keithleyFreqTo.setRange(0, 20)
         self.keithleyFreqTo.setDecimals(3)
         self.keithleyFreqTo.setValue(state.KEITHLEY_FREQ_TO)
         self.keithleyFreqTo.valueChanged.connect(self.freq2curr)
 
-        self.keithleyCurrentFromLabel = QLabel("~ 0 [A]")
-        self.keithleyCurrentToLabel = QLabel("~ 0 [A]")
+        self.keithleyCurrentFromLabel = QLabel(self)
+        self.keithleyCurrentFromLabel.setText("~ 0 [A]")
+        self.keithleyCurrentToLabel = QLabel(self)
+        self.keithleyCurrentToLabel.setText("~ 0 [A]")
 
-        self.keithleyCurrentPointsLabel = QLabel("Points count")
+        self.keithleyCurrentPointsLabel = QLabel(self)
+        self.keithleyCurrentPointsLabel.setText("Points count")
         self.keithleyCurrentPoints = QDoubleSpinBox(self)
         self.keithleyCurrentPoints.setRange(0, 1001)
         self.keithleyCurrentPoints.setDecimals(0)

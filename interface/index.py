@@ -1,5 +1,4 @@
 from PyQt6 import QtGui
-from PyQt6.QtCore import QFile, QIODevice, QTextStream
 from PyQt6.QtWidgets import QMainWindow
 
 from interface import style

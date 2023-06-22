@@ -7,7 +7,6 @@ from PyQt6.QtCore import QObject, pyqtSignal, QThread
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
-    QGroupBox,
     QGridLayout,
     QLabel,
     QDoubleSpinBox,
@@ -18,6 +17,7 @@ from PyQt6.QtWidgets import (
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_fsek30 import SpectrumBlock
 from interface.components.Button import Button
+from interface.components.GroupBox import GroupBox
 from state import state
 from interface.windows.calibrationGraphWindow import CalibrationGraphWindow
 from utils.functions import linear, linear_fit, truncate_path
@@ -113,35 +113,41 @@ class CalibrationTabWidget(QWidget):
         self.curr2freq()
 
     def createGroupCalibration(self):
-        self.groupCalibration = QGroupBox("Calibration params")
+        self.groupCalibration = GroupBox("Calibration params")
         self.groupCalibration.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
         layout = QGridLayout()
 
-        self.keithleyCurrentFromLabel = QLabel("Current from, A")
+        self.keithleyCurrentFromLabel = QLabel(self)
+        self.keithleyCurrentFromLabel.setText("Current from, A")
         self.keithleyCurrentFrom = QDoubleSpinBox(self)
         self.keithleyCurrentFrom.setRange(0, 5)
         self.keithleyCurrentFrom.setValue(state.KEITHLEY_CURRENT_FROM)
         self.keithleyCurrentFrom.valueChanged.connect(self.curr2freq)
 
-        self.keithleyFreqFrom = QLabel("~ 0 [GHz]")
+        self.keithleyFreqFrom = QLabel(self)
+        self.keithleyFreqFrom.setText("~ 0 [GHz]")
 
-        self.keithleyCurrentToLabel = QLabel("Current to, A")
+        self.keithleyCurrentToLabel = QLabel(self)
+        self.keithleyCurrentToLabel.setText("Current to, A")
         self.keithleyCurrentTo = QDoubleSpinBox(self)
         self.keithleyCurrentTo.setRange(0, 5)
         self.keithleyCurrentTo.setValue(state.KEITHLEY_CURRENT_TO)
         self.keithleyCurrentTo.valueChanged.connect(self.curr2freq)
 
-        self.keithleyFreqTo = QLabel("~ 0 [GHz]")
+        self.keithleyFreqTo = QLabel(self)
+        self.keithleyFreqTo.setText("~ 0 [GHz]")
 
-        self.keithleyCurrentPointsLabel = QLabel("Points count")
+        self.keithleyCurrentPointsLabel = QLabel(self)
+        self.keithleyCurrentPointsLabel.setText("Points count")
         self.keithleyCurrentPoints = QDoubleSpinBox(self)
         self.keithleyCurrentPoints.setRange(0, 1001)
         self.keithleyCurrentPoints.setDecimals(0)
         self.keithleyCurrentPoints.setValue(state.KEITHLEY_CURRENT_POINTS)
 
-        self.calibrationStepDelayLabel = QLabel("Step delay, s")
+        self.calibrationStepDelayLabel = QLabel(self)
+        self.calibrationStepDelayLabel.setText("Step delay, s")
         self.calibrationStepDelay = QDoubleSpinBox(self)
         self.calibrationStepDelay.setRange(0, 10)
         self.calibrationStepDelay.setValue(state.CALIBRATION_STEP_DELAY)
@@ -168,13 +174,14 @@ class CalibrationTabWidget(QWidget):
         self.groupCalibration.setLayout(layout)
 
     def createGroupCalibrationFiles(self):
-        self.groupCalibrationFiles = QGroupBox("Calibration files")
+        self.groupCalibrationFiles = GroupBox("Calibration files")
         self.groupCalibrationFiles.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
         layout = QGridLayout()
 
-        self.calibrationFilePath = QLabel(f"{truncate_path(state.CALIBRATION_FILE)}")
+        self.calibrationFilePath = QLabel(self)
+        self.calibrationFilePath.setText(f".../{truncate_path(state.CALIBRATION_FILE)}")
         self.calibrationFilePath.setToolTip(f"{state.CALIBRATION_FILE}")
         self.btnChooseCalibrationFile = Button("Choose file")
         self.btnChooseCalibrationFile.clicked.connect(self.chooseCalibrationFile)

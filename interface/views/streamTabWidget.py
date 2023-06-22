@@ -5,7 +5,6 @@ from PyQt6.QtCore import pyqtSignal, QThread, Qt
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
-    QGroupBox,
     QGridLayout,
     QLabel,
     QDoubleSpinBox,
@@ -16,6 +15,7 @@ from PyQt6.QtWidgets import (
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_nrx import NRXBlock
 from interface.components.Button import Button
+from interface.components.GroupBox import GroupBox
 from interface.windows.nrxStreamGraphWindow import NRXStreamGraphWindow
 from state import state
 from utils.functions import linear
@@ -124,7 +124,7 @@ class StreamTabWidget(QWidget):
         self.curr2freq()
 
     def createGroupNRX(self):
-        self.groupNRX = QGroupBox("Power meter monitor")
+        self.groupNRX = GroupBox("Power meter monitor")
         self.groupNRX.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -174,7 +174,7 @@ class StreamTabWidget(QWidget):
         self.groupNRX.setLayout(layout)
 
     def createGroupKeithley(self):
-        self.groupKeithley = QGroupBox("Keithley monitor")
+        self.groupKeithley = GroupBox("Keithley monitor")
         self.groupKeithley.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -199,7 +199,8 @@ class StreamTabWidget(QWidget):
         self.btnStopStreamKeithley.setEnabled(False)
         self.btnStopStreamKeithley.clicked.connect(self.stop_stream_keithley)
 
-        self.keithleyVoltageSetLabel = QLabel("Voltage set, V")
+        self.keithleyVoltageSetLabel = QLabel(self)
+        self.keithleyVoltageSetLabel.setText("Voltage set, V")
         self.keithleyVoltageSet = QDoubleSpinBox(self)
         self.keithleyVoltageSet.setRange(0, 30)
         self.keithleyVoltageSet.setDecimals(3)
@@ -207,7 +208,8 @@ class StreamTabWidget(QWidget):
         self.btnKeithleyVoltageSet = Button("Set voltage")
         self.btnKeithleyVoltageSet.clicked.connect(self.keithley_set_voltage)
 
-        self.keithleyCurrentSetLabel = QLabel("Current set, A")
+        self.keithleyCurrentSetLabel = QLabel(self)
+        self.keithleyCurrentSetLabel.setText("Current set, A")
         self.keithleyCurrentSet = QDoubleSpinBox(self)
         self.keithleyCurrentSet.setRange(0, 5)
         self.keithleyCurrentSet.setDecimals(4)
