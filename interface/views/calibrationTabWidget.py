@@ -10,7 +10,6 @@ from PyQt6.QtWidgets import (
     QGroupBox,
     QGridLayout,
     QLabel,
-    QPushButton,
     QDoubleSpinBox,
     QFileDialog,
     QSizePolicy,
@@ -18,6 +17,7 @@ from PyQt6.QtWidgets import (
 
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_fsek30 import SpectrumBlock
+from interface.components.Button import Button
 from state import state
 from interface.windows.calibrationGraphWindow import CalibrationGraphWindow
 from utils.functions import linear, linear_fit, truncate_path
@@ -146,10 +146,10 @@ class CalibrationTabWidget(QWidget):
         self.calibrationStepDelay.setRange(0, 10)
         self.calibrationStepDelay.setValue(state.CALIBRATION_STEP_DELAY)
 
-        self.btnStartMeas = QPushButton("Start Calibration")
+        self.btnStartMeas = Button("Start Calibration")
         self.btnStartMeas.clicked.connect(self.start_calibration)
 
-        self.btnStopMeas = QPushButton("Stop Calibration")
+        self.btnStopMeas = Button("Stop Calibration")
         self.btnStopMeas.clicked.connect(self.stop_calibration)
 
         layout.addWidget(self.keithleyCurrentFromLabel, 1, 0)
@@ -176,10 +176,10 @@ class CalibrationTabWidget(QWidget):
 
         self.calibrationFilePath = QLabel(f"{truncate_path(state.CALIBRATION_FILE)}")
         self.calibrationFilePath.setToolTip(f"{state.CALIBRATION_FILE}")
-        self.btnChooseCalibrationFile = QPushButton("Choose file")
+        self.btnChooseCalibrationFile = Button("Choose file")
         self.btnChooseCalibrationFile.clicked.connect(self.chooseCalibrationFile)
 
-        self.btnCalibrate = QPushButton("Apply calibration")
+        self.btnCalibrate = Button("Apply calibration")
         self.btnCalibrate.clicked.connect(self.apply_calibration)
 
         layout.addWidget(self.calibrationFilePath, 1, 0)

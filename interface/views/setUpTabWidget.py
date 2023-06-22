@@ -1,6 +1,7 @@
 import logging
 
-from PyQt6.QtCore import QObject, pyqtSignal, QThread
+from PyQt6.QtCore import QObject, pyqtSignal, QThread, Qt
+from PyQt6.QtGui import QCursor
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -8,7 +9,6 @@ from PyQt6.QtWidgets import (
     QGridLayout,
     QLabel,
     QLineEdit,
-    QPushButton,
     QDoubleSpinBox,
     QSizePolicy,
 )
@@ -17,6 +17,7 @@ from api.keithley_power_supply import KeithleyBlock
 from api.prologixEthernet import PrologixGPIBEthernet
 from api.rs_fsek30 import SpectrumBlock
 from api.rs_nrx import NRXBlock
+from interface.components.Button import Button
 from state import state
 
 logger = logging.getLogger(__name__)
@@ -146,7 +147,7 @@ class SetUpTabWidget(QWidget):
         self.nrxStatus = QLabel(self)
         self.nrxStatus.setText("PM is not initialized yet!")
 
-        self.btnInitNRX = QPushButton("Initialize PM")
+        self.btnInitNRX = Button("Initialize PM")
         self.btnInitNRX.clicked.connect(self.initialize_nrx)
 
         layout.addWidget(self.nrxIPLabel, 1, 0)
@@ -176,7 +177,7 @@ class SetUpTabWidget(QWidget):
         self.prologixEthernetStatus = QLabel(self)
         self.prologixEthernetStatus.setText("Prologix is not initialized yet!")
 
-        self.btnInitPrologixEthernet = QPushButton("Initialize Prologix")
+        self.btnInitPrologixEthernet = Button("Initialize Prologix")
         self.btnInitPrologixEthernet.clicked.connect(self.initialize_prologix_ethernet)
 
         layout.addWidget(self.prologixIPAdressLabel, 1, 0)
@@ -206,12 +207,12 @@ class SetUpTabWidget(QWidget):
         self.keithleyStatus = QLabel(self)
         self.keithleyStatus.setText("Power supply is not initialized yet!")
 
-        self.btnInitKeithley = QPushButton("Initialize Power supply")
+        self.btnInitKeithley = Button("Initialize Power supply")
         self.btnInitKeithley.clicked.connect(self.initialize_keithley)
 
         self.keithleyStateLabel = QLabel("Output On/Off:")
 
-        self.btnKeithleyState = QPushButton("Off")
+        self.btnKeithleyState = Button("Off")
         self.btnKeithleyState.clicked.connect(self.set_keithley_state)
 
         layout.addWidget(self.keithleyAddressLabel, 1, 0)
@@ -247,7 +248,7 @@ class SetUpTabWidget(QWidget):
         self.rsSpectrumStatus = QLabel(self)
         self.rsSpectrumStatus.setText("RS Spectrum is not initialized yet!")
 
-        self.btnInitRsSpectrum = QPushButton("Initialize RS Spectrum")
+        self.btnInitRsSpectrum = Button("Initialize RS Spectrum")
         self.btnInitRsSpectrum.clicked.connect(self.initialize_rs_spectrum)
 
         layout.addWidget(self.rsSpectrumAddressLabel, 1, 0)

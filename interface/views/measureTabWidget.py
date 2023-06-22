@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
 
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_nrx import NRXBlock
+from interface.components.Button import Button
 from state import state
 from interface.windows.measureGraphWindow import MeasureGraphWindow
 from utils.functions import linear
@@ -123,10 +124,10 @@ class MeasureTabWidget(QWidget):
         self.keithleyCurrentPoints.setDecimals(0)
         self.keithleyCurrentPoints.setValue(state.KEITHLEY_CURRENT_POINTS)
 
-        self.btnStartMeas = QPushButton("Start Measure")
+        self.btnStartMeas = Button("Start Measure")
         self.btnStartMeas.clicked.connect(self.start_meas)
 
-        self.btnStopMeas = QPushButton("Stop Measure")
+        self.btnStopMeas = Button("Stop Measure")
         self.btnStopMeas.clicked.connect(self.stop_meas)
 
         layout.addWidget(self.keithleyFreqFromLabel, 1, 0)

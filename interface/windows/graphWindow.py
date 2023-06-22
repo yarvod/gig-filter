@@ -3,9 +3,10 @@ from collections import defaultdict
 from typing import Iterable
 
 from PyQt6 import QtGui
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton
+from PyQt6.QtWidgets import QWidget, QVBoxLayout
 import pyqtgraph as pg
 
+from interface.components.Button import Button
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class GraphWindow(QWidget):
         self.setWindowTitle(self.window_title)
         layout = QVBoxLayout()
         self.graphWidget = pg.PlotWidget()
-        self.btnRemoveGraphs = QPushButton("Remove hidden graphs")
+        self.btnRemoveGraphs = Button("Remove hidden graphs")
         self.btnRemoveGraphs.clicked.connect(self.remove_hidden_graphs)
         layout.addWidget(self.btnRemoveGraphs)
         layout.addWidget(self.graphWidget)

@@ -8,7 +8,6 @@ from PyQt6.QtWidgets import (
     QGroupBox,
     QGridLayout,
     QLabel,
-    QPushButton,
     QDoubleSpinBox,
     QSizePolicy,
     QCheckBox,
@@ -16,6 +15,7 @@ from PyQt6.QtWidgets import (
 
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_nrx import NRXBlock
+from interface.components.Button import Button
 from interface.windows.nrxStreamGraphWindow import NRXStreamGraphWindow
 from state import state
 from utils.functions import linear
@@ -135,10 +135,10 @@ class StreamTabWidget(QWidget):
         self.nrxPower.setText("0.0")
         self.nrxPower.setStyleSheet("font-size: 23px; font-weight: bold;")
 
-        self.btnStartStreamNRX = QPushButton("Start Stream")
+        self.btnStartStreamNRX = Button("Start Stream")
         self.btnStartStreamNRX.clicked.connect(self.start_stream_nrx)
 
-        self.btnStopStreamNRX = QPushButton("Stop Stream")
+        self.btnStopStreamNRX = Button("Stop Stream")
         self.btnStopStreamNRX.setEnabled(False)
         self.btnStopStreamNRX.clicked.connect(self.stop_stream_nrx)
 
@@ -192,10 +192,10 @@ class StreamTabWidget(QWidget):
         self.keithleyCurrentGet.setText("0.0")
         self.keithleyCurrentGet.setStyleSheet("font-size: 23px; font-weight: bold;")
 
-        self.btnStartStreamKeithley = QPushButton("Start Stream")
+        self.btnStartStreamKeithley = Button("Start Stream")
         self.btnStartStreamKeithley.clicked.connect(self.start_stream_keithley)
 
-        self.btnStopStreamKeithley = QPushButton("Stop Stream")
+        self.btnStopStreamKeithley = Button("Stop Stream")
         self.btnStopStreamKeithley.setEnabled(False)
         self.btnStopStreamKeithley.clicked.connect(self.stop_stream_keithley)
 
@@ -204,7 +204,7 @@ class StreamTabWidget(QWidget):
         self.keithleyVoltageSet.setRange(0, 30)
         self.keithleyVoltageSet.setDecimals(3)
 
-        self.btnKeithleyVoltageSet = QPushButton("Set voltage")
+        self.btnKeithleyVoltageSet = Button("Set voltage")
         self.btnKeithleyVoltageSet.clicked.connect(self.keithley_set_voltage)
 
         self.keithleyCurrentSetLabel = QLabel("Current set, A")
@@ -213,7 +213,7 @@ class StreamTabWidget(QWidget):
         self.keithleyCurrentSet.setDecimals(4)
         self.keithleyCurrentSet.valueChanged.connect(self.curr2freq)
 
-        self.btnKeithleyCurrentSet = QPushButton("Set current")
+        self.btnKeithleyCurrentSet = Button("Set current")
         self.btnKeithleyCurrentSet.clicked.connect(self.keithley_set_current)
 
         self.keithleyFreqLabel = QLabel(self)

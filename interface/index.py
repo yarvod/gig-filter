@@ -1,6 +1,8 @@
 from PyQt6 import QtGui
+from PyQt6.QtCore import QFile, QIODevice, QTextStream
 from PyQt6.QtWidgets import QMainWindow
 
+from interface import style
 from interface.views.index import TabsWidget
 
 
@@ -9,6 +11,7 @@ class App(QMainWindow):
         super().__init__()
         self.title = "YIG filter manager"
         self.setWindowIcon(QtGui.QIcon("./assets/logo_small.ico"))
+        self.setStyleSheet(style.GLOBAL_STYLE)
         self.left = 0
         self.top = 0
         self.width = 400
