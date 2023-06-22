@@ -20,7 +20,7 @@ from api.keithley_power_supply import KeithleyBlock
 from api.rs_fsek30 import SpectrumBlock
 from state import state
 from interface.windows.calibrationGraphWindow import CalibrationGraphWindow
-from utils.functions import linear, linear_fit
+from utils.functions import linear, linear_fit, truncate_path
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +174,8 @@ class CalibrationTabWidget(QWidget):
         )
         layout = QGridLayout()
 
-        self.calibrationFilePath = QLabel(f"{state.CALIBRATION_FILE}")
+        self.calibrationFilePath = QLabel(f"{truncate_path(state.CALIBRATION_FILE)}")
+        self.calibrationFilePath.setToolTip(f"{state.CALIBRATION_FILE}")
         self.btnChooseCalibrationFile = QPushButton("Choose file")
         self.btnChooseCalibrationFile.clicked.connect(self.chooseCalibrationFile)
 
@@ -243,7 +244,7 @@ class CalibrationTabWidget(QWidget):
                 caption="Choose calibration file", filter="*.csv"
             )[0]
             if filepath:
-                self.calibrationFilePath.setText(f"{filepath}")
+                self.calibrationFilePath.setText(f"{truncate_path(filepath)}")
                 state.CALIBRATION_FILE = filepath
         except (IndexError, FileNotFoundError):
             return

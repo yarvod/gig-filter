@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 
@@ -24,3 +26,10 @@ def linear_fit(x, y):
     b_0 = m_y - b_1 * m_x
 
     return b_1, b_0
+
+
+def truncate_path(path: str):
+    try:
+        return os.path.split(path)[-1]
+    except IndexError:
+        return "Undefined path"
