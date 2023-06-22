@@ -6,7 +6,9 @@ class Singleton(type):
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            logger.info(f"[{cls.__name__}.__call__] Class is not initialized yet, initializing ...")
+            logger.info(
+                f"[{cls.__name__}.__call__] Class is not initialized yet, initializing ..."
+            )
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         logger.info(f"[{cls.__name__}.__call__] Class already initialized!")
         return cls._instances[cls]
