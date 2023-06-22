@@ -125,19 +125,19 @@ class SetUpTabWidget(QWidget):
         layout = QGridLayout()
 
         self.nrxIPLabel = QLabel(self)
-        self.nrxIPLabel.setText("PM IP:")
+        self.nrxIPLabel.setText("IP address:")
         self.nrxIP = QLineEdit(self)
         self.nrxIP.setText(state.NRX_IP)
 
         self.nrxAperTimeLabel = QLabel(self)
-        self.nrxAperTimeLabel.setText("PM Averaging time, s:")
+        self.nrxAperTimeLabel.setText("Averaging time, s:")
         self.nrxAperTime = QDoubleSpinBox(self)
         self.nrxAperTime.setDecimals(5)
         self.nrxAperTime.setRange(1e-5, 1000)
         self.nrxAperTime.setValue(state.NRX_APER_TIME)
 
         self.nrxStatusLabel = QLabel(self)
-        self.nrxStatusLabel.setText("PM status:")
+        self.nrxStatusLabel.setText("Status:")
         self.nrxStatus = QLabel(self)
         self.nrxStatus.setText("PM is not initialized yet!")
 
@@ -167,7 +167,7 @@ class SetUpTabWidget(QWidget):
         self.prologixIPAdress.setText(state.PROLOGIX_IP)
 
         self.prologixEthernetStatusLabel = QLabel(self)
-        self.prologixEthernetStatusLabel.setText("Prologix status:")
+        self.prologixEthernetStatusLabel.setText("Status:")
         self.prologixEthernetStatus = QLabel(self)
         self.prologixEthernetStatus.setText("Prologix is not initialized yet!")
 
@@ -190,14 +190,14 @@ class SetUpTabWidget(QWidget):
         layout = QGridLayout()
 
         self.keithleyAddressLabel = QLabel(self)
-        self.keithleyAddressLabel.setText("Power supply address:")
+        self.keithleyAddressLabel.setText("GPIB address:")
         self.keithleyAddress = QDoubleSpinBox(self)
         self.keithleyAddress.setRange(0, 31)
         self.keithleyAddress.setDecimals(0)
         self.keithleyAddress.setValue(state.KEITHLEY_ADDRESS)
 
         self.keithleyStatusLabel = QLabel(self)
-        self.keithleyStatusLabel.setText("Power supply status:")
+        self.keithleyStatusLabel.setText("Status:")
         self.keithleyStatus = QLabel(self)
         self.keithleyStatus.setText("Power supply is not initialized yet!")
 
@@ -231,14 +231,14 @@ class SetUpTabWidget(QWidget):
         layout = QGridLayout()
 
         self.rsSpectrumAddressLabel = QLabel(self)
-        self.rsSpectrumAddressLabel.setText("RS Spectrum address:")
+        self.rsSpectrumAddressLabel.setText("GPIB address:")
         self.rsSpectrumAddress = QDoubleSpinBox(self)
         self.rsSpectrumAddress.setRange(0, 31)
         self.rsSpectrumAddress.setDecimals(0)
         self.rsSpectrumAddress.setValue(state.SPECTRUM_ADDRESS)
 
         self.rsSpectrumStatusLabel = QLabel(self)
-        self.rsSpectrumStatusLabel.setText("RS Spectrum status:")
+        self.rsSpectrumStatusLabel.setText("Status:")
         self.rsSpectrumStatus = QLabel(self)
         self.rsSpectrumStatus.setText("RS Spectrum is not initialized yet!")
 
