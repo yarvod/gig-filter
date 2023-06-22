@@ -8,6 +8,9 @@ DARK_PURPLE = "#1d1128"
 # Fonts
 FONT_SIZE = "15px"
 
+# Variables
+BORDER_RADIUS = "5px"
+
 GLOBAL_STYLE = """
 QWidget {
     font-size: 15px;
