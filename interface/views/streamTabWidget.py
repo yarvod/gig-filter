@@ -1,7 +1,7 @@
 import logging
 import time
 
-from PyQt6.QtCore import QObject, pyqtSignal, QThread, Qt
+from PyQt6.QtCore import pyqtSignal, QThread, Qt
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,

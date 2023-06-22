@@ -22,7 +22,7 @@ class PrologixGPIBEthernet(InstrumentAdapterInterface, metaclass=Singleton):
             logger.info(
                 f"[{self.__class__.__name__}.__init__]Socket is already existed, connecting ..."
             )
-        self.connect()
+        self.connect(timeout)
         self._setup()
 
     def connect(self, timeout: float = 2):

@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
 )
 
 from api.keithley_power_supply import KeithleyBlock
+from api.prologixEthernet import PrologixGPIBEthernet
 from api.rs_fsek30 import SpectrumBlock
 from api.rs_nrx import NRXBlock
 from state import state
@@ -44,8 +45,30 @@ class RsSpectrumWorker(QObject):
             address=state.SPECTRUM_ADDRESS,
         )
         result = spectrum.idn()
+        if not result:
+            self.status.emit("Undefined Error")
+            self.finished.emit()
         status = "Ok" if "FSEK" in result else "Undefined Error"
         self.status.emit(status)
+        self.finished.emit()
+
+
+class PrologixEthernetThread(QThread):
+    status = pyqtSignal(bool)
+
+    def run(self):
+        try:
+            PrologixGPIBEthernet(host=state.PROLOGIX_IP)
+            logger.info(
+                f"[{self.__class__.__name__}.run] Prologix Ethernet Initialized"
+            )
+            self.status.emit(True)
+        except:
+            logger.error(
+                f"[{self.__class__.__name__}.run] Prologix Ethernet unable to initialize"
+            )
+            self.status.emit(False)
+
         self.finished.emit()
 
 
@@ -81,9 +104,12 @@ class SetUpTabWidget(QWidget):
         super(QWidget, self).__init__(parent)
         self.layout = QVBoxLayout(self)
         self.createGroupNRX()
+        self.createGroupPrologixEthernet()
         self.createGroupKeithley()
         self.createGroupRsSpectrumAnalyzer()
         self.layout.addWidget(self.groupNRX)
+        self.layout.addSpacing(10)
+        self.layout.addWidget(self.groupPrologixEthernet)
         self.layout.addSpacing(10)
         self.layout.addWidget(self.groupKeithley)
         self.layout.addSpacing(10)
@@ -128,6 +154,34 @@ class SetUpTabWidget(QWidget):
 
         self.groupNRX.setLayout(layout)
 
+    def createGroupPrologixEthernet(self):
+        self.groupPrologixEthernet = QGroupBox("Prologix Ethernet config")
+        self.groupPrologixEthernet.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
+        layout = QGridLayout()
+
+        self.prologixIPAdressLabel = QLabel(self)
+        self.prologixIPAdressLabel.setText("IP address:")
+        self.prologixIPAdress = QLineEdit(self)
+        self.prologixIPAdress.setText(state.PROLOGIX_IP)
+
+        self.prologixEthernetStatusLabel = QLabel(self)
+        self.prologixEthernetStatusLabel.setText("Prologix status:")
+        self.prologixEthernetStatus = QLabel(self)
+        self.prologixEthernetStatus.setText("Prologix is not initialized yet!")
+
+        self.btnInitPrologixEthernet = QPushButton("Initialize Prologix")
+        self.btnInitPrologixEthernet.clicked.connect(self.initialize_prologix_ethernet)
+
+        layout.addWidget(self.prologixIPAdressLabel, 1, 0)
+        layout.addWidget(self.prologixIPAdress, 1, 1)
+        layout.addWidget(self.prologixEthernetStatusLabel, 2, 0)
+        layout.addWidget(self.prologixEthernetStatus, 2, 1)
+        layout.addWidget(self.btnInitPrologixEthernet, 3, 0, 1, 2)
+
+        self.groupPrologixEthernet.setLayout(layout)
+
     def createGroupKeithley(self):
         self.groupKeithley = QGroupBox("Power supply config")
         self.groupKeithley.setSizePolicy(
@@ -145,7 +199,7 @@ class SetUpTabWidget(QWidget):
         self.keithleyStatusLabel = QLabel(self)
         self.keithleyStatusLabel.setText("Power supply status:")
         self.keithleyStatus = QLabel(self)
-        self.keithleyStatus.setText("Power supply is not checked yet!")
+        self.keithleyStatus.setText("Power supply is not initialized yet!")
 
         self.btnInitKeithley = QPushButton("Initialize Power supply")
         self.btnInitKeithley.clicked.connect(self.initialize_keithley)
@@ -292,3 +346,22 @@ class SetUpTabWidget(QWidget):
 
     def set_rs_spectrum_status(self, status: str):
         self.rsSpectrumStatus.setText(status)
+
+    def initialize_prologix_ethernet(self):
+        self.prologix_ethernet_thread = PrologixEthernetThread()
+
+        state.PROLOGIX_IP = self.prologixIPAdress.text()
+
+        self.prologix_ethernet_thread.status.connect(self.set_prologix_ethernet_status)
+        self.prologix_ethernet_thread.start()
+
+        self.btnInitPrologixEthernet.setEnabled(False)
+        self.prologix_ethernet_thread.finished.connect(
+            lambda: self.btnInitPrologixEthernet.setEnabled(True)
+        )
+
+    def set_prologix_ethernet_status(self, status: bool):
+        if status:
+            self.prologixEthernetStatus.setText("Ok")
+        else:
+            self.prologixEthernetStatus.setText("Error!")
