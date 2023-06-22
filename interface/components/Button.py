@@ -5,7 +5,6 @@ from PyQt6.QtWidgets import QPushButton
 
 
 class Button(QPushButton):
-
     def __init__(self, parent):
         super().__init__(parent)
         self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -20,7 +19,8 @@ class Button(QPushButton):
     def _on_value_changed(self, color):
         foreground = (
             QtGui.QColor("white")
-            if self._animation.direction() == QtCore.QAbstractAnimation.Direction.Forward
+            if self._animation.direction()
+            == QtCore.QAbstractAnimation.Direction.Forward
             else QtGui.QColor("#6d72c3")
         )
         self._update_stylesheet(color, foreground)

@@ -17,9 +17,7 @@ class PrologixGPIBEthernet(InstrumentAdapterInterface, metaclass=Singleton):
 
     def init(self, timeout: float = 2):
         if self.socket is None:
-            logger.info(
-                f"[{self.__class__.__name__}.init]Socket is None, creating ..."
-            )
+            logger.info(f"[{self.__class__.__name__}.init]Socket is None, creating ...")
             self.socket = socket.socket(
                 socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP
             )
@@ -64,9 +62,7 @@ class PrologixGPIBEthernet(InstrumentAdapterInterface, metaclass=Singleton):
                 f"[{self.__class__.__name__}.is_socket_closed] Unexpected exception '{e}', socket status is undefined"
             )
             return None
-        logger.info(
-            f"[{self.__class__.__name__}.is_socket_closed] Socket is opened"
-        )
+        logger.info(f"[{self.__class__.__name__}.is_socket_closed] Socket is opened")
         return False
 
     def close(self):
