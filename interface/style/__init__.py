@@ -87,4 +87,7 @@ QDoubleSpinBox::down-button {
 QDoubleSpinBox::down-button:hover {
     background: #6d72c3;
 }
-""" % (state.UP_ARROW, state.DOWN_ARROW)
+""" % (
+    state.UP_ARROW,
+    state.DOWN_ARROW,
+)

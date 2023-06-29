@@ -16,6 +16,8 @@ class State:
     NRX_STREAM_PLOT_GRAPH = False
     NRX_STREAM_GRAPH_POINTS = 150
     PROLOGIX_IP = "169.254.156.103"
+    NI_PREFIX = "http://"
+    NI_IP = "169.254.0.86"
 
     SPECTRUM_ADDRESS = 20
 
