@@ -98,6 +98,79 @@ class CalibrateWorker(QObject):
         self.finished.emit()
 
 
+class CalibrateDigitalWorker(QObject):
+    finished = pyqtSignal()
+    results = pyqtSignal(dict)
+    stream_result = pyqtSignal(dict)
+
+    def run(self):
+        dc_block = KeithleyBlock(
+            prologix_ip=state.PROLOGIX_IP, address=state.KEITHLEY_ADDRESS
+        )
+        s_block = SpectrumBlock(
+            prologix_ip=state.PROLOGIX_IP, address=state.SPECTRUM_ADDRESS
+        )
+
+        results = {
+            "current_set": [],
+            "current_get": [],
+            "voltage_get": [],
+            "power": [],
+            "freq": [],
+        }
+        current_range = list(
+            np.linspace(
+                state.KEITHLEY_CURRENT_FROM,
+                state.KEITHLEY_CURRENT_TO,
+                int(state.KEITHLEY_CURRENT_POINTS),
+            )
+        )
+        current_range.extend(
+            list(
+                np.linspace(
+                    state.KEITHLEY_CURRENT_TO,
+                    state.KEITHLEY_CURRENT_FROM,
+                    int(state.KEITHLEY_CURRENT_POINTS),
+                )
+            )
+        )
+
+        initial_current = dc_block.get_setted_current()
+
+        for step, current in enumerate(current_range, 1):
+            if not state.CALIBRATION_MEAS:
+                break
+            dc_block.set_current(current)
+            time.sleep(state.CALIBRATION_STEP_DELAY)
+            if step == 1:
+                time.sleep(0.4)
+            current_get = dc_block.get_current()
+            voltage_get = dc_block.get_voltage()
+            s_block.peak_search()
+            power = s_block.get_peak_power()
+            freq = s_block.get_peak_freq()
+            results["current_set"].append(current)
+            results["current_get"].append(current_get)
+            results["voltage_get"].append(voltage_get)
+            results["power"].append(power)
+            results["freq"].append(freq)
+
+            self.stream_result.emit(
+                {
+                    "x": [current_get],
+                    "y": [freq],
+                    "new_plot": step == 1,
+                }
+            )
+
+            proc = round(step / state.KEITHLEY_CURRENT_POINTS * 100, 2)
+            logger.info(f"[{proc} %]")
+
+        dc_block.set_current(initial_current)
+        self.results.emit(results)
+        self.finished.emit()
+
+
 class CalibrationTabWidget(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)

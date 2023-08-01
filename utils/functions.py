@@ -2,7 +2,7 @@ import os
 import math
 
 
-def linear(x, a, b):
+def linear(x: float, a: float, b: float):
     return a * x + b
 
 

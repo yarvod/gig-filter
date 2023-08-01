@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
 )
 
 from api.keithley_power_supply import KeithleyBlock
+from api.ni import NiYIGManager
 from api.rs_nrx import NRXBlock
 from interface.components.Button import Button
 from interface.components.GroupBox import GroupBox
@@ -116,9 +117,12 @@ class StreamTabWidget(QWidget):
         self.powerStreamGraphWindow = None
         self.createGroupNRX()
         self.createGroupKeithley()
+        self.createGroupNiYig()
         self.layout.addWidget(self.groupNRX)
         self.layout.addSpacing(10)
         self.layout.addWidget(self.groupKeithley)
+        self.layout.addSpacing(10)
+        self.layout.addWidget(self.groupNiYig)
         self.layout.addStretch()
         self.setLayout(self.layout)
         self.curr2freq()
@@ -256,6 +260,38 @@ class StreamTabWidget(QWidget):
         layout.addWidget(self.keithleyFreq, 6, 1)
 
         self.groupKeithley.setLayout(layout)
+
+    def createGroupNiYig(self):
+        self.groupNiYig = GroupBox("NI YIG")
+        self.groupNiYig.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
+        layout = QGridLayout()
+
+        self.niYigFreqLabel = QLabel(self)
+        self.niYigFreqLabel.setText("Freq, GHz")
+        self.niYigFreq = QDoubleSpinBox(self)
+        self.niYigFreq.setRange(2.94, 13)
+        self.niYigFreq.setValue(8)
+
+        self.btnSetNiYigFreq = Button("Set frequency")
+        self.btnSetNiYigFreq.clicked.connect(self.setNiYigFreq)
+
+        layout.addWidget(self.niYigFreqLabel, 1, 0)
+        layout.addWidget(self.niYigFreq, 1, 1)
+        layout.addWidget(self.btnSetNiYigFreq, 2, 0, 1, 2)
+
+        self.groupNiYig.setLayout(layout)
+
+    def setNiYigFreq(self):
+        value = int(
+            linear(
+                self.niYigFreq.value() * 1e9, *state.CALIBRATION_DIGITAL_FREQ_2_POINT
+            )
+        )
+        ni_yig = NiYIGManager()
+        resp = ni_yig.write_task(value=value)
+        logger.info(f"[setNiYigFreq] {resp.json()}")
 
     def keithley_set_current(self):
         self.keithley_set_current_thread = KeithleySetCurrentThread()

@@ -9,36 +9,39 @@ from state import state
 
 class NiYIGManager:
     def __init__(self):
-        self.url = f"{state.NI_PREFIX}{state.NI_IP}/"
+        self.url = f"{state.NI_PREFIX}{state.NI_IP}"
+        self.headers = {"Content-Type": "application/json"}
 
     def get_devices(self):
         url = f"{self.url}/devices/"
-        response = requests.get(url)
+        response = requests.get(url, headers=self.headers)
         return response
 
     def start_task(self, device: str = "Dev1"):
         url = f"{self.url}/devices/{device}/start"
-        response = requests.post(url)
+        response = requests.post(url, headers=self.headers)
         return response
 
     def stop_task(self, device: str = "Dev1"):
         url = f"{self.url}/devices/{device}/stop"
-        response = requests.post(url)
+        response = requests.post(url, headers=self.headers)
         return response
 
     def close_task(self, device: str = "Dev1"):
         url = f"{self.url}/devices/{device}/close"
-        response = requests.post(url)
+        response = requests.post(url, headers=self.headers)
         return response
 
     def write_task(self, value: int, device: str = "Dev1"):
         url = f"{self.url}/devices/{device}/write"
-        response = requests.post(url, data=json.dumps({"value": value}))
+        response = requests.post(
+            url, data=json.dumps({"value": value}), headers=self.headers
+        )
         return response
 
     def device_reset(self, device: str = "Dev1"):
         url = f"{self.url}/devices/{device}/reset"
-        response = requests.post(url)
+        response = requests.post(url, headers=self.headers)
         return response
 
 
