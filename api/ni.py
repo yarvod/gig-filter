@@ -8,7 +8,6 @@ from state import state
 
 
 class NiYIGManager:
-
     def __init__(self):
         self.url = f"{state.NI_PREFIX}{state.NI_IP}/"
 
@@ -48,11 +47,7 @@ if __name__ == "__main__":
     s_block = SpectrumBlock(
         prologix_ip=state.PROLOGIX_IP, address=state.SPECTRUM_ADDRESS
     )
-    data = {
-        "power": [],
-        "freq": [],
-        "point": []
-    }
+    data = {"power": [], "freq": [], "point": []}
     try:
         for i in range(4096):
             time.sleep(state.CALIBRATION_STEP_DELAY)

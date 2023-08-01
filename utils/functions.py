@@ -7,9 +7,9 @@ def linear(x, a, b):
 
 
 def linear_fit(x, y):
-
     def mean(xs):
         return sum(xs) / len(xs)
+
     m_x = mean(x)
     m_y = mean(y)
 
@@ -18,12 +18,11 @@ def linear_fit(x, y):
         return math.sqrt(sum((pow(x1 - m, 2) for x1 in xs)) / normalizer)
 
     def pearson_r(xs, ys):
-
         sum_xy = 0
         sum_sq_v_x = 0
         sum_sq_v_y = 0
 
-        for (x1, y2) in zip(xs, ys):
+        for x1, y2 in zip(xs, ys):
             var_x = x1 - m_x
             var_y = y2 - m_y
             sum_xy += var_x * var_y
