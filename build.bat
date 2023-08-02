@@ -1,1 +1,4 @@
-pyInstaller main.py -n YIG_filter_manager --onedir --icon=".\assets\logo.ico" --add-data ".\assets:.\assets" --add-data ".\calibration.csv:." --noconsole --windowed -y
+pyInstaller main.py -n YIG_filter_manager --onedir --icon=".\assets\logo.ico" --noconsole --windowed -y
+copy calibration.csv .\dist\YIG_filter_manager\calibration.csv
+mkdir .\dist\YIG_filter_manager\assets
+copy .\assets\* .\dist\YIG_filter_manager\assets
