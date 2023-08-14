@@ -9,7 +9,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QGridLayout,
     QLabel,
-    QDoubleSpinBox,
     QFileDialog,
     QSizePolicy,
 )
@@ -17,6 +16,7 @@ from PyQt6.QtWidgets import (
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_fsek30 import SpectrumBlock
 from interface.components.Button import Button
+from interface.components.DoubleSpinBox import DoubleSpinBox
 from interface.components.GroupBox import GroupBox
 from state import state
 from interface.windows.calibrationGraphWindow import CalibrationGraphWindow
@@ -194,7 +194,7 @@ class CalibrationTabWidget(QWidget):
 
         self.keithleyCurrentFromLabel = QLabel(self)
         self.keithleyCurrentFromLabel.setText("Current from, A")
-        self.keithleyCurrentFrom = QDoubleSpinBox(self)
+        self.keithleyCurrentFrom = DoubleSpinBox(self)
         self.keithleyCurrentFrom.setRange(0, 5)
         self.keithleyCurrentFrom.setValue(state.KEITHLEY_CURRENT_FROM)
         self.keithleyCurrentFrom.valueChanged.connect(self.curr2freq)
@@ -204,7 +204,7 @@ class CalibrationTabWidget(QWidget):
 
         self.keithleyCurrentToLabel = QLabel(self)
         self.keithleyCurrentToLabel.setText("Current to, A")
-        self.keithleyCurrentTo = QDoubleSpinBox(self)
+        self.keithleyCurrentTo = DoubleSpinBox(self)
         self.keithleyCurrentTo.setRange(0, 5)
         self.keithleyCurrentTo.setValue(state.KEITHLEY_CURRENT_TO)
         self.keithleyCurrentTo.valueChanged.connect(self.curr2freq)
@@ -214,14 +214,14 @@ class CalibrationTabWidget(QWidget):
 
         self.keithleyCurrentPointsLabel = QLabel(self)
         self.keithleyCurrentPointsLabel.setText("Points count")
-        self.keithleyCurrentPoints = QDoubleSpinBox(self)
+        self.keithleyCurrentPoints = DoubleSpinBox(self)
         self.keithleyCurrentPoints.setRange(0, 1001)
         self.keithleyCurrentPoints.setDecimals(0)
         self.keithleyCurrentPoints.setValue(state.KEITHLEY_CURRENT_POINTS)
 
         self.calibrationStepDelayLabel = QLabel(self)
         self.calibrationStepDelayLabel.setText("Step delay, s")
-        self.calibrationStepDelay = QDoubleSpinBox(self)
+        self.calibrationStepDelay = DoubleSpinBox(self)
         self.calibrationStepDelay.setRange(0, 10)
         self.calibrationStepDelay.setValue(state.CALIBRATION_STEP_DELAY)
 

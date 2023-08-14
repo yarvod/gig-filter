@@ -9,7 +9,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QGridLayout,
     QLabel,
-    QDoubleSpinBox,
     QFileDialog,
     QSizePolicy,
 )
@@ -17,6 +16,7 @@ from PyQt6.QtWidgets import (
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_nrx import NRXBlock
 from interface.components.Button import Button
+from interface.components.DoubleSpinBox import DoubleSpinBox
 from interface.components.GroupBox import GroupBox
 from state import state
 from interface.windows.measureGraphWindow import MeasureGraphWindow
@@ -102,7 +102,7 @@ class MeasureTabWidget(QWidget):
 
         self.keithleyFreqFromLabel = QLabel(self)
         self.keithleyFreqFromLabel.setText("Frequency from, GHz")
-        self.keithleyFreqFrom = QDoubleSpinBox(self)
+        self.keithleyFreqFrom = DoubleSpinBox(self)
         self.keithleyFreqFrom.setRange(0, 20)
         self.keithleyFreqFrom.setDecimals(3)
         self.keithleyFreqFrom.setValue(state.KEITHLEY_FREQ_FROM)
@@ -110,7 +110,7 @@ class MeasureTabWidget(QWidget):
 
         self.keithleyFreqToLabel = QLabel(self)
         self.keithleyFreqToLabel.setText("Frequency to, GHz")
-        self.keithleyFreqTo = QDoubleSpinBox(self)
+        self.keithleyFreqTo = DoubleSpinBox(self)
         self.keithleyFreqTo.setRange(0, 20)
         self.keithleyFreqTo.setDecimals(3)
         self.keithleyFreqTo.setValue(state.KEITHLEY_FREQ_TO)
@@ -123,7 +123,7 @@ class MeasureTabWidget(QWidget):
 
         self.keithleyCurrentPointsLabel = QLabel(self)
         self.keithleyCurrentPointsLabel.setText("Points count")
-        self.keithleyCurrentPoints = QDoubleSpinBox(self)
+        self.keithleyCurrentPoints = DoubleSpinBox(self)
         self.keithleyCurrentPoints.setRange(0, 1001)
         self.keithleyCurrentPoints.setDecimals(0)
         self.keithleyCurrentPoints.setValue(state.KEITHLEY_CURRENT_POINTS)

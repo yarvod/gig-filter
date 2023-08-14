@@ -7,7 +7,6 @@ from PyQt6.QtWidgets import (
     QGridLayout,
     QLabel,
     QLineEdit,
-    QDoubleSpinBox,
     QSizePolicy,
 )
 
@@ -16,6 +15,7 @@ from api.prologixEthernet import PrologixGPIBEthernet
 from api.rs_fsek30 import SpectrumBlock
 from api.rs_nrx import NRXBlock
 from interface.components.Button import Button
+from interface.components.DoubleSpinBox import DoubleSpinBox
 from interface.components.GroupBox import GroupBox
 from state import state
 
@@ -136,7 +136,7 @@ class SetUpTabWidget(QWidget):
 
         self.nrxAperTimeLabel = QLabel(self)
         self.nrxAperTimeLabel.setText("Averaging time, s:")
-        self.nrxAperTime = QDoubleSpinBox(self)
+        self.nrxAperTime = DoubleSpinBox(self)
         self.nrxAperTime.setDecimals(5)
         self.nrxAperTime.setRange(1e-5, 1000)
         self.nrxAperTime.setValue(state.NRX_APER_TIME)
@@ -196,7 +196,7 @@ class SetUpTabWidget(QWidget):
 
         self.keithleyAddressLabel = QLabel(self)
         self.keithleyAddressLabel.setText("GPIB address:")
-        self.keithleyAddress = QDoubleSpinBox(self)
+        self.keithleyAddress = DoubleSpinBox(self)
         self.keithleyAddress.setRange(0, 31)
         self.keithleyAddress.setDecimals(0)
         self.keithleyAddress.setValue(state.KEITHLEY_ADDRESS)
@@ -238,7 +238,7 @@ class SetUpTabWidget(QWidget):
 
         self.rsSpectrumAddressLabel = QLabel(self)
         self.rsSpectrumAddressLabel.setText("GPIB address:")
-        self.rsSpectrumAddress = QDoubleSpinBox(self)
+        self.rsSpectrumAddress = DoubleSpinBox(self)
         self.rsSpectrumAddress.setRange(0, 31)
         self.rsSpectrumAddress.setDecimals(0)
         self.rsSpectrumAddress.setValue(state.SPECTRUM_ADDRESS)

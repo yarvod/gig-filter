@@ -7,7 +7,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QGridLayout,
     QLabel,
-    QDoubleSpinBox,
     QSizePolicy,
     QCheckBox,
 )
@@ -16,6 +15,7 @@ from api.keithley_power_supply import KeithleyBlock
 from api.ni import NiYIGManager
 from api.rs_nrx import NRXBlock
 from interface.components.Button import Button
+from interface.components.DoubleSpinBox import DoubleSpinBox
 from interface.components.GroupBox import GroupBox
 from interface.windows.nrxStreamGraphWindow import NRXStreamGraphWindow
 from state import state
@@ -153,7 +153,7 @@ class StreamTabWidget(QWidget):
 
         self.nrxStreamPlotPointsLabel = QLabel(self)
         self.nrxStreamPlotPointsLabel.setText("Window points")
-        self.nrxStreamPlotPoints = QDoubleSpinBox(self)
+        self.nrxStreamPlotPoints = DoubleSpinBox(self)
         self.nrxStreamPlotPoints.setRange(10, 1000)
         self.nrxStreamPlotPoints.setDecimals(0)
         self.nrxStreamPlotPoints.setValue(state.NRX_STREAM_GRAPH_POINTS)
@@ -180,7 +180,7 @@ class StreamTabWidget(QWidget):
         self.groupNRX.setLayout(layout)
 
     def createGroupKeithley(self):
-        self.groupKeithley = GroupBox("Keithley monitor")
+        self.groupKeithley = GroupBox("Analog YIG (Power Supply)")
         self.groupKeithley.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -204,6 +204,16 @@ class StreamTabWidget(QWidget):
             "font-size: 23px; font-weight: bold; color: black;"
         )
 
+        self.keithleyFreqGetLabel = QLabel(self)
+        self.keithleyFreqGetLabel.setText("<h4>YIG frequency, GHz</h4>")
+        self.keithleyFreqGetLabel.setStyleSheet("color: black;")
+
+        self.keithleyFreqGet = QLabel(self)
+        self.keithleyFreqGet.setText("0.0")
+        self.keithleyFreqGet.setStyleSheet(
+            "font-size: 23px; font-weight: bold; color: black;"
+        )
+
         self.btnStartStreamKeithley = Button("Start Stream")
         self.btnStartStreamKeithley.clicked.connect(self.start_stream_keithley)
 
@@ -213,7 +223,7 @@ class StreamTabWidget(QWidget):
 
         self.keithleyVoltageSetLabel = QLabel(self)
         self.keithleyVoltageSetLabel.setText("Voltage set, V")
-        self.keithleyVoltageSet = QDoubleSpinBox(self)
+        self.keithleyVoltageSet = DoubleSpinBox(self)
         self.keithleyVoltageSet.setRange(0, 30)
         self.keithleyVoltageSet.setDecimals(3)
 
@@ -222,8 +232,8 @@ class StreamTabWidget(QWidget):
 
         self.keithleyCurrentSetLabel = QLabel(self)
         self.keithleyCurrentSetLabel.setText("Current set, A")
-        self.keithleyCurrentSet = QDoubleSpinBox(self)
-        self.keithleyCurrentSet.setRange(0, 5)
+        self.keithleyCurrentSet = DoubleSpinBox(self)
+        self.keithleyCurrentSet.setRange(0.0827, 5)
         self.keithleyCurrentSet.setDecimals(4)
         self.keithleyCurrentSet.valueChanged.connect(self.curr2freq)
 
@@ -231,10 +241,14 @@ class StreamTabWidget(QWidget):
         self.btnKeithleyCurrentSet.clicked.connect(self.keithley_set_current)
 
         self.keithleyFreqLabel = QLabel(self)
-        self.keithleyFreqLabel.setText("YIG frequency")
+        self.keithleyFreqLabel.setText("Frequency set, GHz")
+        self.keithleyFreq = DoubleSpinBox(self)
+        self.keithleyFreq.setRange(3, 13)
+        self.keithleyFreq.setValue(8)
+        self.keithleyFreq.valueChanged.connect(self.freq2curr)
 
-        self.keithleyFreq = QLabel(self)
-        self.keithleyFreq.setText("~ 0 [GHz]")
+        self.btnKeithleyFreqSet = Button("Set frequency")
+        self.btnKeithleyFreqSet.clicked.connect(self.keithley_set_current)
 
         layout.addWidget(
             self.keithleyVoltageGetLabel, 1, 0, alignment=Qt.AlignmentFlag.AlignCenter
@@ -243,13 +257,19 @@ class StreamTabWidget(QWidget):
             self.keithleyCurrentGetLabel, 1, 1, alignment=Qt.AlignmentFlag.AlignCenter
         )
         layout.addWidget(
+            self.keithleyFreqGetLabel, 1, 2, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        layout.addWidget(
             self.keithleyVoltageGet, 2, 0, alignment=Qt.AlignmentFlag.AlignCenter
         )
         layout.addWidget(
             self.keithleyCurrentGet, 2, 1, alignment=Qt.AlignmentFlag.AlignCenter
         )
+        layout.addWidget(
+            self.keithleyFreqGet, 2, 2, alignment=Qt.AlignmentFlag.AlignCenter
+        )
         layout.addWidget(self.btnStartStreamKeithley, 3, 0)
-        layout.addWidget(self.btnStopStreamKeithley, 3, 1)
+        layout.addWidget(self.btnStopStreamKeithley, 3, 2)
         layout.addWidget(self.keithleyVoltageSetLabel, 4, 0)
         layout.addWidget(self.keithleyVoltageSet, 4, 1)
         layout.addWidget(self.btnKeithleyVoltageSet, 4, 2)
@@ -258,11 +278,12 @@ class StreamTabWidget(QWidget):
         layout.addWidget(self.btnKeithleyCurrentSet, 5, 2)
         layout.addWidget(self.keithleyFreqLabel, 6, 0)
         layout.addWidget(self.keithleyFreq, 6, 1)
+        layout.addWidget(self.btnKeithleyFreqSet, 6, 2)
 
         self.groupKeithley.setLayout(layout)
 
     def createGroupNiYig(self):
-        self.groupNiYig = GroupBox("NI YIG")
+        self.groupNiYig = GroupBox("Digital YIG (NI)")
         self.groupNiYig.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -270,7 +291,7 @@ class StreamTabWidget(QWidget):
 
         self.niYigFreqLabel = QLabel(self)
         self.niYigFreqLabel.setText("Freq, GHz")
-        self.niYigFreq = QDoubleSpinBox(self)
+        self.niYigFreq = DoubleSpinBox(self)
         self.niYigFreq.setRange(2.94, 13)
         self.niYigFreq.setValue(8)
 
@@ -307,7 +328,13 @@ class StreamTabWidget(QWidget):
 
     def curr2freq(self):
         freq = linear(self.keithleyCurrentSet.value(), *state.CALIBRATION_CURR_2_FREQ)
-        self.keithleyFreq.setText(f"~ {round(freq / 1e9, 2)} [GHz]")
+        value = round(freq / 1e9, 2)
+        self.keithleyFreq.setValue(value)
+
+    def freq2curr(self):
+        curr = linear(self.keithleyFreq.value() * 1e9, *state.CALIBRATION_FREQ_2_CURR)
+        value = round(curr, 4)
+        self.keithleyCurrentSet.setValue(value)
 
     def keithley_set_voltage(self):
         self.keithley_set_voltage_thread = KeithleySetVoltageThread()

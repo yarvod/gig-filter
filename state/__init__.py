@@ -3,7 +3,7 @@ import os
 
 class State:
     # Base
-    BASE_DIR = ""
+    BASE_DIR = os.getcwd()
     # Icons
     WINDOW_ICON = os.path.join(BASE_DIR, "assets", "logo_small.ico")
     UP_ARROW = os.path.join(BASE_DIR, "assets", "up-arrow.png")
