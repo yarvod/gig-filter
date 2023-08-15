@@ -19,7 +19,7 @@ class GraphWindow(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.setWindowIcon(QtGui.QIcon("./assets/logo_small.ico"))
+        self.setWindowIcon(QtGui.QIcon("./assets/logo_small.png"))
         self.setWindowTitle(self.window_title)
         layout = QVBoxLayout()
         self.graphWidget = pg.PlotWidget()
