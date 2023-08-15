@@ -33,6 +33,7 @@ class NiYIGManager:
         return response
 
     def write_task(self, value: int, device: str = "Dev1"):
+        value = int(value)
         url = f"{self.url}/devices/{device}/write"
         response = requests.post(
             url, data=json.dumps({"value": value}), headers=self.headers

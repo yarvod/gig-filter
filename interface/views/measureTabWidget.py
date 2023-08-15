@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 
@@ -14,12 +15,13 @@ from PyQt6.QtWidgets import (
 )
 
 from api.keithley_power_supply import KeithleyBlock
+from api.ni import NiYIGManager
 from api.rs_nrx import NRXBlock
 from interface.components.Button import Button
 from interface.components.DoubleSpinBox import DoubleSpinBox
 from interface.components.GroupBox import GroupBox
 from state import state
-from interface.windows.measureGraphWindow import MeasureGraphWindow
+from interface.windows.stabilityMeasureGraphWindow import StabilityMeasureGraphWindow
 from utils.functions import linear
 
 logger = logging.getLogger(__name__)
@@ -27,57 +29,58 @@ logger = logging.getLogger(__name__)
 
 class MeasureWorker(QObject):
     finished = pyqtSignal()
-    results = pyqtSignal(dict)
+    results = pyqtSignal(list)
     stream_result = pyqtSignal(dict)
 
     def run(self):
-        keithley = KeithleyBlock(address=state.KEITHLEY_ADDRESS)
+        ni = NiYIGManager()
         nrx = NRXBlock(
             ip=state.NRX_IP,
             filter_time=state.NRX_FILTER_TIME,
             aperture_time=state.NRX_APER_TIME,
         )
 
-        results = {
-            "current_set": [],
-            "current_get": [],
-            "voltage_get": [],
-            "power": [],
-        }
-        current_range = np.linspace(
-            state.KEITHLEY_CURRENT_FROM,
-            state.KEITHLEY_CURRENT_TO,
-            int(state.KEITHLEY_CURRENT_POINTS),
+        results = []
+        freq_range = np.linspace(
+            state.NI_FREQ_FROM,
+            state.NI_FREQ_TO,
+            int(state.NI_FREQ_POINTS),
         )
         start_time = time.time()
-        initial_current = keithley.get_setted_current()
-        for step, current in enumerate(current_range, 1):
-            if not state.KEITHLEY_MEAS:
+        for step, freq in enumerate(freq_range, 1):
+            result = {
+                "frequency": freq * 1e9,
+                "power": [],
+                "time": [],
+            }
+            if not state.NI_STABILITY_MEAS:
                 break
-            keithley.set_current(current)
+            freq_point = linear(freq * 1e9, *state.CALIBRATION_DIGITAL_FREQ_2_POINT)
+            ni.write_task(freq_point)
             time.sleep(0.01)
             if step == 1:
                 time.sleep(0.4)
-            current_get = keithley.get_current()
-            voltage_get = keithley.get_voltage()
-            power = nrx.get_power()
-            results["current_set"].append(current)
-            results["current_get"].append(current_get)
-            results["voltage_get"].append(voltage_get)
-            results["power"].append(power)
+            tm = time.time()
+            for i in range(state.NRX_POINTS):
+                power = nrx.get_power()
+                result["power"].append(power)
+                result["time"].append(time.time() - tm)
 
-            self.stream_result.emit(
-                {
-                    "x": [linear(current_get, *state.CALIBRATION_CURR_2_FREQ)],
-                    "y": [power],
-                    "new_plot": step == 1,
-                }
+                self.stream_result.emit(
+                    {
+                        "x": [time.time() - tm],
+                        "y": [power],
+                        "new_plot": i == 0,
+                    }
+                )
+
+            results.append(result)
+
+            proc = round(step / state.NI_FREQ_POINTS * 100, 2)
+            logger.info(
+                f"[{proc} %][Time {round(time.time() - start_time, 1)} s][Freq {freq}]"
             )
 
-            proc = round(step / state.KEITHLEY_CURRENT_POINTS * 100, 2)
-            logger.info(f"[{proc} %][Time {round(time.time() - start_time, 1)} s]")
-
-        keithley.set_current(initial_current)
         nrx.close()
         self.results.emit(results)
         self.finished.emit()
@@ -87,46 +90,46 @@ class MeasureTabWidget(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
         self.layout = QVBoxLayout(self)
-        self.measureGraphWindow = None
+        self.stabilityMeasureGraphWindow = None
         self.createGroupMeas()
         self.layout.addWidget(self.groupMeas)
         self.layout.addStretch()
         self.setLayout(self.layout)
 
     def createGroupMeas(self):
-        self.groupMeas = GroupBox("Measure params")
+        self.groupMeas = GroupBox("Stability Digital Power(frequency)")
         self.groupMeas.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
         layout = QGridLayout()
 
-        self.keithleyFreqFromLabel = QLabel(self)
-        self.keithleyFreqFromLabel.setText("Frequency from, GHz")
-        self.keithleyFreqFrom = DoubleSpinBox(self)
-        self.keithleyFreqFrom.setRange(0, 20)
-        self.keithleyFreqFrom.setDecimals(3)
-        self.keithleyFreqFrom.setValue(state.KEITHLEY_FREQ_FROM)
-        self.keithleyFreqFrom.valueChanged.connect(self.freq2curr)
+        self.niFreqStartLabel = QLabel(self)
+        self.niFreqStartLabel.setText("Frequency start, GHz")
+        self.niFreqStart = DoubleSpinBox(self)
+        self.niFreqStart.setRange(0, 20)
+        self.niFreqStart.setDecimals(3)
+        self.niFreqStart.setValue(state.NI_FREQ_FROM)
 
-        self.keithleyFreqToLabel = QLabel(self)
-        self.keithleyFreqToLabel.setText("Frequency to, GHz")
-        self.keithleyFreqTo = DoubleSpinBox(self)
-        self.keithleyFreqTo.setRange(0, 20)
-        self.keithleyFreqTo.setDecimals(3)
-        self.keithleyFreqTo.setValue(state.KEITHLEY_FREQ_TO)
-        self.keithleyFreqTo.valueChanged.connect(self.freq2curr)
+        self.niFreqStopLabel = QLabel(self)
+        self.niFreqStopLabel.setText("Frequency stop, GHz")
+        self.niFreqStop = DoubleSpinBox(self)
+        self.niFreqStop.setRange(0, 20)
+        self.niFreqStop.setDecimals(3)
+        self.niFreqStop.setValue(state.NI_FREQ_TO)
 
-        self.keithleyCurrentFromLabel = QLabel(self)
-        self.keithleyCurrentFromLabel.setText("~ 0 [A]")
-        self.keithleyCurrentToLabel = QLabel(self)
-        self.keithleyCurrentToLabel.setText("~ 0 [A]")
+        self.niFreqPointsLabel = QLabel(self)
+        self.niFreqPointsLabel.setText("Freq points")
+        self.niFreqPoints = DoubleSpinBox(self)
+        self.niFreqPoints.setRange(0, 1001)
+        self.niFreqPoints.setDecimals(0)
+        self.niFreqPoints.setValue(state.NI_FREQ_POINTS)
 
-        self.keithleyCurrentPointsLabel = QLabel(self)
-        self.keithleyCurrentPointsLabel.setText("Points count")
-        self.keithleyCurrentPoints = DoubleSpinBox(self)
-        self.keithleyCurrentPoints.setRange(0, 1001)
-        self.keithleyCurrentPoints.setDecimals(0)
-        self.keithleyCurrentPoints.setValue(state.KEITHLEY_CURRENT_POINTS)
+        self.nrxPointsLabel = QLabel(self)
+        self.nrxPointsLabel.setText("Power points")
+        self.nrxPoints = DoubleSpinBox(self)
+        self.nrxPoints.setRange(0, 1001)
+        self.nrxPoints.setDecimals(0)
+        self.nrxPoints.setValue(state.NRX_POINTS)
 
         self.btnStartMeas = Button("Start Measure")
         self.btnStartMeas.clicked.connect(self.start_meas)
@@ -134,28 +137,29 @@ class MeasureTabWidget(QWidget):
         self.btnStopMeas = Button("Stop Measure")
         self.btnStopMeas.clicked.connect(self.stop_meas)
 
-        layout.addWidget(self.keithleyFreqFromLabel, 1, 0)
-        layout.addWidget(self.keithleyFreqFrom, 1, 1)
-        layout.addWidget(self.keithleyCurrentFromLabel, 1, 2)
-        layout.addWidget(self.keithleyFreqToLabel, 2, 0)
-        layout.addWidget(self.keithleyFreqTo, 2, 1)
-        layout.addWidget(self.keithleyCurrentToLabel, 2, 2)
-        layout.addWidget(self.keithleyCurrentPointsLabel, 3, 0)
-        layout.addWidget(self.keithleyCurrentPoints, 3, 1)
-        layout.addWidget(self.btnStartMeas, 4, 0, 1, 2)
-        layout.addWidget(self.btnStopMeas, 4, 2)
+        layout.addWidget(self.niFreqStartLabel, 1, 0)
+        layout.addWidget(self.niFreqStart, 1, 1)
+        layout.addWidget(self.niFreqStopLabel, 2, 0)
+        layout.addWidget(self.niFreqStop, 2, 1)
+        layout.addWidget(self.niFreqPointsLabel, 3, 0)
+        layout.addWidget(self.niFreqPoints, 3, 1)
+        layout.addWidget(self.nrxPointsLabel, 4, 0)
+        layout.addWidget(self.nrxPoints, 4, 1)
+        layout.addWidget(self.btnStartMeas, 5, 0)
+        layout.addWidget(self.btnStopMeas, 5, 1)
 
         self.groupMeas.setLayout(layout)
-        self.freq2curr()
 
     def start_meas(self):
         self.meas_thread = QThread()
         self.meas_worker = MeasureWorker()
         self.meas_worker.moveToThread(self.meas_thread)
 
-        state.KEITHLEY_MEAS = True
-        self.freq2curr()
-        state.KEITHLEY_CURRENT_POINTS = self.keithleyCurrentPoints.value()
+        state.NI_STABILITY_MEAS = True
+        state.NI_FREQ_TO = self.niFreqStop.value()
+        state.NI_FREQ_FROM = self.niFreqStart.value()
+        state.NI_FREQ_POINTS = int(self.niFreqPoints.value())
+        state.NRX_POINTS = int(self.nrxPoints.value())
 
         self.meas_thread.started.connect(self.meas_worker.run)
         self.meas_worker.finished.connect(self.meas_thread.quit)
@@ -172,36 +176,24 @@ class MeasureTabWidget(QWidget):
         self.meas_thread.finished.connect(lambda: self.btnStopMeas.setEnabled(False))
 
     def stop_meas(self):
-        state.KEITHLEY_MEAS = False
+        state.NI_STABILITY_MEAS = False
 
-    def save_meas(self, results: dict):
+    def save_meas(self, results: list):
         try:
-            filepath = QFileDialog.getSaveFileName()[0]
-            df = pd.DataFrame(results)
-            df.to_csv(filepath)
+            filepath = QFileDialog.getSaveFileName(filter="*.json")[0]
+            if not filepath.endswith(".json"):
+                filepath += ".json"
+            with open(filepath, "w", encoding="utf-8") as file:
+                json.dump(results, file, ensure_ascii=False, indent=4)
         except (IndexError, FileNotFoundError):
             pass
 
-    def freq2curr(self):
-        state.KEITHLEY_CURRENT_FROM = linear(
-            self.keithleyFreqFrom.value() * 1e9, *state.CALIBRATION_FREQ_2_CURR
-        )
-        state.KEITHLEY_CURRENT_TO = linear(
-            self.keithleyFreqTo.value() * 1e9, *state.CALIBRATION_FREQ_2_CURR
-        )
-        self.keithleyCurrentFromLabel.setText(
-            f"~ {round(state.KEITHLEY_CURRENT_FROM, 4)} [A]"
-        )
-        self.keithleyCurrentToLabel.setText(
-            f"~ {round(state.KEITHLEY_CURRENT_TO, 4)} [A]"
-        )
-
     def show_measure_graph_window(self, results: dict):
-        if self.measureGraphWindow is None:
-            self.measureGraphWindow = MeasureGraphWindow()
-        self.measureGraphWindow.plotNew(
+        if self.stabilityMeasureGraphWindow is None:
+            self.stabilityMeasureGraphWindow = StabilityMeasureGraphWindow()
+        self.stabilityMeasureGraphWindow.plotNew(
             x=results.get("x", []),
             y=results.get("y", []),
             new_plot=results.get("new_plot", True),
         )
-        self.measureGraphWindow.show()
+        self.stabilityMeasureGraphWindow.show()

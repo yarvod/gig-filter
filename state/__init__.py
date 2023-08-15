@@ -19,6 +19,12 @@ class State:
     NI_PREFIX = "http://"
     NI_IP = "169.254.0.86"
 
+    NI_FREQ_TO = 13
+    NI_FREQ_FROM = 3
+    NI_FREQ_POINTS = 300
+    NI_STABILITY_MEAS = False
+    NRX_POINTS = 20
+
     SPECTRUM_ADDRESS = 20
 
     KEITHLEY_MEAS = False
@@ -59,7 +65,7 @@ class State:
         )
     )
     NRX_FILTER_TIME = 0.01
-    NRX_APER_TIME = 0.1
+    NRX_APER_TIME = 0.05
 
     CALIBRATION_CURR_2_FREQ = [3.49015508e10, 1.14176903e08]
     CALIBRATION_FREQ_2_CURR = [2.86513427e-11, -3.26694024e-03]
