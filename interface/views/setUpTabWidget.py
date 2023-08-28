@@ -8,9 +8,11 @@ from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
     QSizePolicy,
+    QFormLayout,
 )
 
 from api.keithley_power_supply import KeithleyBlock
+from api.ni import NiYIGManager
 from api.prologixEthernet import PrologixGPIBEthernet
 from api.rs_fsek30 import SpectrumBlock
 from api.rs_nrx import NRXBlock
@@ -104,6 +106,16 @@ class NRXBlockWorker(QObject):
         self.finished.emit()
 
 
+class DigitalYigTestThread(QThread):
+    status = pyqtSignal(bool)
+
+    def run(self):
+        ni = NiYIGManager(host=state.NI_IP)
+        test = ni.test()
+        self.status.emit(test)
+        self.finished.emit()
+
+
 class SetUpTabWidget(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
@@ -112,6 +124,7 @@ class SetUpTabWidget(QWidget):
         self.createGroupPrologixEthernet()
         self.createGroupKeithley()
         self.createGroupRsSpectrumAnalyzer()
+        self.createGroupDigitalYig()
         self.layout.addWidget(self.groupNRX)
         self.layout.addSpacing(10)
         self.layout.addWidget(self.groupPrologixEthernet)
@@ -119,6 +132,8 @@ class SetUpTabWidget(QWidget):
         self.layout.addWidget(self.groupKeithley)
         self.layout.addSpacing(10)
         self.layout.addWidget(self.groupRsSpectrum)
+        self.layout.addSpacing(10)
+        self.layout.addWidget(self.groupDigitalYig)
         self.layout.addStretch()
         self.setLayout(self.layout)
 
@@ -258,6 +273,47 @@ class SetUpTabWidget(QWidget):
         layout.addWidget(self.btnInitRsSpectrum, 3, 0, 1, 2)
 
         self.groupRsSpectrum.setLayout(layout)
+
+    def createGroupDigitalYig(self):
+        self.groupDigitalYig = GroupBox(self)
+        self.groupDigitalYig.setTitle("Digital YIG (NI)")
+
+        layout = QFormLayout()
+
+        self.digitalYigAddressLabel = QLabel(self)
+        self.digitalYigAddressLabel.setText("IP address")
+        self.digitalYigAddress = QLineEdit(self)
+        self.digitalYigAddress.setText(state.NI_IP)
+
+        self.digitalYigStatusLabel = QLabel(self)
+        self.digitalYigStatusLabel.setText("Status")
+        self.digitalYigStatus = QLabel(self)
+        self.digitalYigStatus.setText("Not initialized yet!")
+
+        self.btnInitDigitalYig = Button("Initialize")
+        self.btnInitDigitalYig.clicked.connect(self.initialize_digital_yig)
+
+        layout.addRow(self.digitalYigAddressLabel, self.digitalYigAddress)
+        layout.addRow(self.digitalYigStatusLabel, self.digitalYigStatus)
+        layout.addRow(self.btnInitDigitalYig)
+
+        self.groupDigitalYig.setLayout(layout)
+
+    def initialize_digital_yig(self):
+        state.NI_IP = self.digitalYigAddress.text()
+        self.digital_yig_thread = DigitalYigTestThread()
+        self.digital_yig_thread.start()
+        self.btnInitDigitalYig.setEnabled(False)
+        self.digital_yig_thread.finished.connect(
+            lambda: self.btnInitDigitalYig.setEnabled(True)
+        )
+        self.digital_yig_thread.status.connect(self.set_digital_yig_status)
+
+    def set_digital_yig_status(self, status: bool):
+        if status:
+            self.digitalYigStatus.setText("Ok")
+        else:
+            self.digitalYigStatus.setText("Error")
 
     def set_keithley_btn_state(self, keithley_state: str):
         text = state.KEITHLEY_OUTPUT_STATE_MAP.get(keithley_state)

@@ -110,6 +110,18 @@ class NRXBlockStreamThread(QThread):
         logger.info(f"[{self.__class__.__name__}.quit] Quited")
 
 
+class DigitalYigThread(QThread):
+    def run(self):
+        value = int(
+            linear(
+                state.DIGITAL_YIG_FREQ * 1e9, *state.CALIBRATION_DIGITAL_FREQ_2_POINT
+            )
+        )
+        ni_yig = NiYIGManager(host=state.NI_IP)
+        resp = ni_yig.write_task(value=value)
+        logger.info(f"[setNiYigFreq] {resp.json()}")
+
+
 class StreamTabWidget(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
@@ -293,7 +305,7 @@ class StreamTabWidget(QWidget):
         self.niYigFreqLabel.setText("Freq, GHz")
         self.niYigFreq = DoubleSpinBox(self)
         self.niYigFreq.setRange(2.94, 13)
-        self.niYigFreq.setValue(8)
+        self.niYigFreq.setValue(state.DIGITAL_YIG_FREQ)
 
         self.btnSetNiYigFreq = Button("Set frequency")
         self.btnSetNiYigFreq.clicked.connect(self.setNiYigFreq)
@@ -305,14 +317,13 @@ class StreamTabWidget(QWidget):
         self.groupNiYig.setLayout(layout)
 
     def setNiYigFreq(self):
-        value = int(
-            linear(
-                self.niYigFreq.value() * 1e9, *state.CALIBRATION_DIGITAL_FREQ_2_POINT
-            )
+        state.DIGITAL_YIG_FREQ = self.niYigFreq.value()
+        self.set_digital_yig_freq_thread = DigitalYigThread()
+        self.set_digital_yig_freq_thread.finished.connect(
+            lambda: self.btnSetNiYigFreq.setEnabled(True)
         )
-        ni_yig = NiYIGManager()
-        resp = ni_yig.write_task(value=value)
-        logger.info(f"[setNiYigFreq] {resp.json()}")
+        self.set_digital_yig_freq_thread.start()
+        self.btnSetNiYigFreq.setEnabled(False)
 
     def keithley_set_current(self):
         self.keithley_set_current_thread = KeithleySetCurrentThread()

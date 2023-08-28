@@ -8,9 +8,16 @@ from state import state
 
 
 class NiYIGManager:
-    def __init__(self):
-        self.url = f"{state.NI_PREFIX}{state.NI_IP}"
+    def __init__(
+        self,
+        host: str = state.NI_IP,
+    ):
+        self.url = f"{state.NI_PREFIX}{host}"
         self.headers = {"Content-Type": "application/json"}
+
+    def test(self) -> bool:
+        response = requests.get(self.url, headers=self.headers)
+        return response.status_code == 200
 
     def get_devices(self):
         url = f"{self.url}/devices/"
