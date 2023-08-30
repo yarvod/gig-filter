@@ -1,3 +1,5 @@
+from typing import List
+
 from api.prologixEthernet import PrologixGPIBEthernet
 from api.prologixUsb import PrologixGPIBUsb
 from state import state
@@ -58,10 +60,13 @@ class SpectrumBlock(InstrumentGPIBBlockInterface):
     def get_peak_power(self):
         return float(self.instr.query(f"CALC:MARK:Y?", self.address))
 
+    @exception
+    def get_trace_data(self) -> List:
+        response = self.instr.query(f":TRAC:DATA? TRACE1", self.address)
+        return [float(i) for i in response.split(",")]
+
 
 if __name__ == "__main__":
     block = SpectrumBlock()
-    print(block.idn())
-    print("peak", block.peak_search())
-    print("pow", block.get_peak_power())
-    print("freq", block.get_peak_freq())
+    print("idn", block.idn())
+    print("trace", block.get_trace_data())

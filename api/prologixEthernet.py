@@ -10,7 +10,7 @@ class PrologixGPIBEthernet(InstrumentAdapterInterface, metaclass=Singleton):
     socket = None
     host = None
 
-    def __init__(self, host: str, timeout: float = 2):
+    def __init__(self, host: str, timeout: float = 3):
         self.host = host
         self.timeout = 0
         self.init(timeout)

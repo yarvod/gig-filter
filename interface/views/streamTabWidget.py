@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import Dict
 
 from PyQt6.QtCore import pyqtSignal, QThread, Qt
 from PyQt6.QtWidgets import (
@@ -13,11 +14,13 @@ from PyQt6.QtWidgets import (
 
 from api.keithley_power_supply import KeithleyBlock
 from api.ni import NiYIGManager
+from api.rs_fsek30 import SpectrumBlock
 from api.rs_nrx import NRXBlock
 from interface.components.Button import Button
 from interface.components.DoubleSpinBox import DoubleSpinBox
 from interface.components.GroupBox import GroupBox
 from interface.windows.nrxStreamGraphWindow import NRXStreamGraphWindow
+from interface.windows.spectrumGraphWindow import SpectrumGraphWindow
 from state import state
 from utils.functions import linear
 
@@ -122,19 +125,39 @@ class DigitalYigThread(QThread):
         logger.info(f"[setNiYigFreq] {resp.json()}")
 
 
+class SpectrumThread(QThread):
+    data = pyqtSignal(dict)
+
+    def run(self):
+        block = SpectrumBlock()
+        while 1:
+            power = block.get_trace_data()
+            self.data.emit(
+                {
+                    "x": list(range(len(power))),
+                    "y": power,
+                }
+            )
+            time.sleep(0.5)
+
+
 class StreamTabWidget(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
         self.layout = QVBoxLayout(self)
         self.powerStreamGraphWindow = None
+        self.spectrumStreamGraphWindow = None
         self.createGroupNRX()
         self.createGroupKeithley()
         self.createGroupNiYig()
+        self.createGroupSpectrum()
         self.layout.addWidget(self.groupNRX)
         self.layout.addSpacing(10)
         self.layout.addWidget(self.groupKeithley)
         self.layout.addSpacing(10)
         self.layout.addWidget(self.groupNiYig)
+        self.layout.addSpacing(10)
+        self.layout.addWidget(self.groupSpectrum)
         self.layout.addStretch()
         self.setLayout(self.layout)
         self.curr2freq()
@@ -315,6 +338,41 @@ class StreamTabWidget(QWidget):
         layout.addWidget(self.btnSetNiYigFreq, 2, 0, 1, 2)
 
         self.groupNiYig.setLayout(layout)
+
+    def createGroupSpectrum(self):
+        self.groupSpectrum = GroupBox(self)
+        self.groupSpectrum.setTitle("Spectrum")
+        layout = QVBoxLayout()
+
+        self.btnStartSpectrum = Button("Start stream spectrum")
+        self.btnStartSpectrum.clicked.connect(self.startStreamSpectrum)
+        self.btnStopSpectrum = Button("Stop stream spectrum")
+        self.btnStopSpectrum.clicked.connect(lambda: self.spectrum_thread.terminate())
+        self.btnStopSpectrum.setEnabled(False)
+
+        layout.addWidget(self.btnStartSpectrum)
+        layout.addWidget(self.btnStopSpectrum)
+        self.groupSpectrum.setLayout(layout)
+
+    def startStreamSpectrum(self):
+        self.spectrum_thread = SpectrumThread()
+        self.spectrum_thread.data.connect(self.show_spectrum)
+        self.spectrum_thread.start()
+        self.btnStartSpectrum.setEnabled(False)
+        self.btnStopSpectrum.setEnabled(True)
+        self.spectrum_thread.finished.connect(
+            lambda: self.btnStartSpectrum.setEnabled(True)
+        )
+        self.spectrum_thread.finished.connect(
+            lambda: self.btnStopSpectrum.setEnabled(False)
+        )
+
+    def show_spectrum(self, data: Dict):
+        if self.spectrumStreamGraphWindow is None:
+            self.spectrumStreamGraphWindow = SpectrumGraphWindow()
+
+        self.spectrumStreamGraphWindow.plotNew(x=data["x"], y=data["y"])
+        self.spectrumStreamGraphWindow.show()
 
     def setNiYigFreq(self):
         state.DIGITAL_YIG_FREQ = self.niYigFreq.value()
