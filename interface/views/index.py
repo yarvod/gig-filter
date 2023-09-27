@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 
 from interface.views.calibrationTabWidget import CalibrationTabWidget
+from interface.views.measureDataTabWidget import MeasureDataTabWidget
 from interface.views.measureTabWidget import MeasureTabWidget
 from interface.views.streamTabWidget import StreamTabWidget
 from interface.views.setUpTabWidget import SetUpTabWidget
@@ -14,6 +15,7 @@ class TabsWidget(QWidget):
         # Initialize tab screen
         self.tabs = QTabWidget(self)
         self.tab_setup = SetUpTabWidget(self)
+        self.tab_data = MeasureDataTabWidget(self)
         self.tab_stream = StreamTabWidget(self)
         self.tab_calibration = CalibrationTabWidget(self)
         self.tab_measure = MeasureTabWidget(self)
@@ -21,6 +23,7 @@ class TabsWidget(QWidget):
 
         # Add tabs
         self.tabs.addTab(self.tab_setup, "Set Up")
+        self.tabs.addTab(self.tab_data, "Data")
         self.tabs.addTab(self.tab_stream, "Stream")
         self.tabs.addTab(self.tab_calibration, "Calibration")
         self.tabs.addTab(self.tab_measure, "Measure")

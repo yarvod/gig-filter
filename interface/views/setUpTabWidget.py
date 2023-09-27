@@ -1,6 +1,6 @@
 import logging
 
-from PyQt6.QtCore import QObject, pyqtSignal, QThread
+from PyQt6.QtCore import QObject, pyqtSignal, QThread, Qt
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QSizePolicy,
     QFormLayout,
+    QScrollArea,
 )
 
 from api.keithley_power_supply import KeithleyBlock
@@ -16,10 +17,11 @@ from api.ni import NiYIGManager
 from api.prologixEthernet import PrologixGPIBEthernet
 from api.rs_fsek30 import SpectrumBlock
 from api.rs_nrx import NRXBlock
-from interface.components.Button import Button
-from interface.components.DoubleSpinBox import DoubleSpinBox
-from interface.components.GroupBox import GroupBox
-from state import state
+from interface.components.chopper.SetUpChopperGroup import SetupChopperGroup
+from interface.components.ui.Button import Button
+from interface.components.ui.DoubleSpinBox import DoubleSpinBox
+from interface.components.ui.GroupBox import GroupBox
+from store.state import state
 
 logger = logging.getLogger(__name__)
 
@@ -116,9 +118,10 @@ class DigitalYigTestThread(QThread):
         self.finished.emit()
 
 
-class SetUpTabWidget(QWidget):
+class SetUpTabWidget(QScrollArea):
     def __init__(self, parent):
-        super(QWidget, self).__init__(parent)
+        super().__init__(parent)
+        self.widget = QWidget()
         self.layout = QVBoxLayout(self)
         self.createGroupNRX()
         self.createGroupPrologixEthernet()
@@ -134,11 +137,19 @@ class SetUpTabWidget(QWidget):
         self.layout.addWidget(self.groupRsSpectrum)
         self.layout.addSpacing(10)
         self.layout.addWidget(self.groupDigitalYig)
+        self.layout.addSpacing(10)
+        self.layout.addWidget(SetupChopperGroup(self))
         self.layout.addStretch()
-        self.setLayout(self.layout)
+
+        self.widget.setLayout(self.layout)
+
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setWidgetResizable(True)
+        self.setWidget(self.widget)
 
     def createGroupNRX(self):
-        self.groupNRX = GroupBox("Power meter config")
+        self.groupNRX = GroupBox("Power meter")
         self.groupNRX.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -152,8 +163,8 @@ class SetUpTabWidget(QWidget):
         self.nrxAperTimeLabel = QLabel(self)
         self.nrxAperTimeLabel.setText("Averaging time, s:")
         self.nrxAperTime = DoubleSpinBox(self)
-        self.nrxAperTime.setDecimals(5)
-        self.nrxAperTime.setRange(1e-5, 1000)
+        self.nrxAperTime.setDecimals(2)
+        self.nrxAperTime.setRange(1e-2, 100)
         self.nrxAperTime.setValue(state.NRX_APER_TIME)
 
         self.nrxStatusLabel = QLabel(self)
@@ -175,7 +186,7 @@ class SetUpTabWidget(QWidget):
         self.groupNRX.setLayout(layout)
 
     def createGroupPrologixEthernet(self):
-        self.groupPrologixEthernet = GroupBox("Prologix Ethernet config")
+        self.groupPrologixEthernet = GroupBox("Prologix Ethernet")
         self.groupPrologixEthernet.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -203,7 +214,7 @@ class SetUpTabWidget(QWidget):
         self.groupPrologixEthernet.setLayout(layout)
 
     def createGroupKeithley(self):
-        self.groupKeithley = GroupBox("Power supply config")
+        self.groupKeithley = GroupBox("Power supply (Keithley 2200-30-5)")
         self.groupKeithley.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
@@ -245,7 +256,7 @@ class SetUpTabWidget(QWidget):
         self.groupKeithley.setLayout(layout)
 
     def createGroupRsSpectrumAnalyzer(self):
-        self.groupRsSpectrum = GroupBox("Spectrum Analyzer RS FSEK config")
+        self.groupRsSpectrum = GroupBox("Spectrum Analyzer (RS FSEK 30)")
         self.groupRsSpectrum.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )

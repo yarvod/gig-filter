@@ -1,6 +1,6 @@
 from api.prologixEthernet import PrologixGPIBEthernet
 from api.prologixUsb import PrologixGPIBUsb
-from state import state
+from store.state import state
 from utils.classes import InstrumentAdapterInterface, InstrumentGPIBBlockInterface
 from utils.decorators import visa_exception
 

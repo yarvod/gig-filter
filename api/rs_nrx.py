@@ -1,6 +1,6 @@
 from RsInstrument import *
 
-from state import state
+from store.state import state
 from utils.decorators import exception
 from utils.logger import logger
 
@@ -69,7 +69,7 @@ class NRXBlock:
 
     @exception
     def set_filter_state(self, state: int = 0):
-        """Filter state: On - 1, Off - 0"""
+        """Filter store: On - 1, Off - 0"""
         self.instr.write(f"CALC:CHAN:AVER:STAT {state}")
 
     @exception

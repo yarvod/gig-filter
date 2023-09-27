@@ -4,8 +4,7 @@ import sys
 from PyQt6.QtWidgets import QApplication
 
 from interface.index import App
-from state import state
-
+from store.state import state
 
 state.BASE_DIR = os.path.dirname(__file__)
 

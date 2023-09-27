@@ -2,7 +2,7 @@ from typing import List
 
 from api.prologixEthernet import PrologixGPIBEthernet
 from api.prologixUsb import PrologixGPIBUsb
-from state import state
+from store.state import state
 from utils.classes import InstrumentGPIBBlockInterface, InstrumentAdapterInterface
 from utils.decorators import exception
 

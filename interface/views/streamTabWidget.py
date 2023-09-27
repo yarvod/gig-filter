@@ -10,18 +10,19 @@ from PyQt6.QtWidgets import (
     QLabel,
     QSizePolicy,
     QCheckBox,
+    QScrollArea,
 )
 
 from api.keithley_power_supply import KeithleyBlock
 from api.ni import NiYIGManager
 from api.rs_fsek30 import SpectrumBlock
 from api.rs_nrx import NRXBlock
-from interface.components.Button import Button
-from interface.components.DoubleSpinBox import DoubleSpinBox
-from interface.components.GroupBox import GroupBox
+from interface.components.ui.Button import Button
+from interface.components.ui.DoubleSpinBox import DoubleSpinBox
+from interface.components.ui.GroupBox import GroupBox
 from interface.windows.nrxStreamGraphWindow import NRXStreamGraphWindow
 from interface.windows.spectrumGraphWindow import SpectrumGraphWindow
-from state import state
+from store.state import state
 from utils.functions import linear
 
 logger = logging.getLogger(__name__)
@@ -141,9 +142,10 @@ class SpectrumThread(QThread):
             time.sleep(0.5)
 
 
-class StreamTabWidget(QWidget):
+class StreamTabWidget(QScrollArea):
     def __init__(self, parent):
-        super(QWidget, self).__init__(parent)
+        super().__init__(parent)
+        self.widget = QWidget()
         self.layout = QVBoxLayout(self)
         self.powerStreamGraphWindow = None
         self.spectrumStreamGraphWindow = None
@@ -159,7 +161,13 @@ class StreamTabWidget(QWidget):
         self.layout.addSpacing(10)
         self.layout.addWidget(self.groupSpectrum)
         self.layout.addStretch()
-        self.setLayout(self.layout)
+
+        self.widget.setLayout(self.layout)
+
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setWidgetResizable(True)
+        self.setWidget(self.widget)
         self.curr2freq()
 
     def createGroupNRX(self):

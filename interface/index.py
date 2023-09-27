@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QMainWindow
 
 from interface import style
 from interface.views.index import TabsWidget
-from state import state
+from store.state import state
 
 
 class App(QMainWindow):
@@ -14,8 +14,8 @@ class App(QMainWindow):
         self.setStyleSheet(style.GLOBAL_STYLE)
         self.left = 0
         self.top = 0
-        self.width = 400
-        self.height = 300
+        self.width = 500
+        self.height = 700
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 

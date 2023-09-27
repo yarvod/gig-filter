@@ -6,7 +6,7 @@ from PyQt6 import QtGui
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
 import pyqtgraph as pg
 
-from interface.components.Button import Button
+from interface.components.ui.Button import Button
 
 logger = logging.getLogger(__name__)
 

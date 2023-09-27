@@ -3,7 +3,7 @@ import time
 
 import numpy as np
 import pandas as pd
-from PyQt6.QtCore import QObject, pyqtSignal, QThread
+from PyQt6.QtCore import QObject, pyqtSignal, QThread, Qt
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -11,14 +11,15 @@ from PyQt6.QtWidgets import (
     QLabel,
     QFileDialog,
     QSizePolicy,
+    QScrollArea,
 )
 
 from api.keithley_power_supply import KeithleyBlock
 from api.rs_fsek30 import SpectrumBlock
-from interface.components.Button import Button
-from interface.components.DoubleSpinBox import DoubleSpinBox
-from interface.components.GroupBox import GroupBox
-from state import state
+from interface.components.ui.Button import Button
+from interface.components.ui.DoubleSpinBox import DoubleSpinBox
+from interface.components.ui.GroupBox import GroupBox
+from store.state import state
 from interface.windows.calibrationGraphWindow import CalibrationGraphWindow
 from utils.functions import linear, linear_fit, truncate_path
 
@@ -171,9 +172,10 @@ class CalibrateDigitalWorker(QObject):
         self.finished.emit()
 
 
-class CalibrationTabWidget(QWidget):
+class CalibrationTabWidget(QScrollArea):
     def __init__(self, parent):
-        super(QWidget, self).__init__(parent)
+        super().__init__(parent)
+        self.widget = QWidget()
         self.layout = QVBoxLayout(self)
         self.calibrationGraphWindow = None
         self.createGroupCalibration()
@@ -182,7 +184,11 @@ class CalibrationTabWidget(QWidget):
         self.layout.addSpacing(10)
         self.layout.addWidget(self.groupCalibrationFiles)
         self.layout.addStretch()
-        self.setLayout(self.layout)
+        self.widget.setLayout(self.layout)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setWidgetResizable(True)
+        self.setWidget(self.widget)
         self.curr2freq()
 
     def createGroupCalibration(self):

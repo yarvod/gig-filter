@@ -4,7 +4,7 @@ import time
 import requests
 
 from api.rs_fsek30 import SpectrumBlock
-from state import state
+from store.state import state
 
 
 class NiYIGManager:
