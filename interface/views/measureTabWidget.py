@@ -213,7 +213,7 @@ class MeasureTabWidget(QScrollArea):
         self.progress = QProgressBar(self)
         self.progress.setValue(0)
 
-        self.btnStartMeas = Button("Start Measure")
+        self.btnStartMeas = Button("Start Measure", animate=True)
         self.btnStartMeas.clicked.connect(self.start_meas)
 
         self.btnStopMeas = Button("Stop Measure")

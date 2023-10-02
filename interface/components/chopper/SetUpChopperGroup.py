@@ -35,7 +35,7 @@ class SetupChopperGroup(QGroupBox):
         self.chopperPort.setText(f"{state.CHOPPER_PORT}")
         self.chopperStatus = QLabel(self)
         self.chopperStatus.setText(NOT_INITIALIZED)
-        self.btnInitChopper = Button("Initialize")
+        self.btnInitChopper = Button("Initialize", animate=True)
         self.btnInitChopper.clicked.connect(self.initializeChopper)
 
         layout.addRow("Adapter:", self.adapter)

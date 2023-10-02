@@ -231,7 +231,7 @@ class CalibrationTabWidget(QScrollArea):
         self.calibrationStepDelay.setRange(0, 10)
         self.calibrationStepDelay.setValue(state.CALIBRATION_STEP_DELAY)
 
-        self.btnStartMeas = Button("Start Calibration")
+        self.btnStartMeas = Button("Start Calibration", animate=True)
         self.btnStartMeas.clicked.connect(self.start_calibration)
 
         self.btnStopMeas = Button("Stop Calibration")

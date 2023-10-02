@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
     QSizePolicy,
     QCheckBox,
     QScrollArea,
+    QFormLayout,
 )
 
 from api.keithley_power_supply import KeithleyBlock
@@ -115,6 +116,8 @@ class NRXBlockStreamThread(QThread):
 
 
 class DigitalYigThread(QThread):
+    response = pyqtSignal(str)
+
     def run(self):
         value = int(
             linear(
@@ -123,7 +126,15 @@ class DigitalYigThread(QThread):
         )
         ni_yig = NiYIGManager(host=state.NI_IP)
         resp = ni_yig.write_task(value=value)
-        logger.info(f"[setNiYigFreq] {resp.json()}")
+        resp_int = resp.get("result", None)
+        if resp_int is None:
+            self.response.emit("Unable to set frequency")
+        else:
+            freq = round(
+                linear(resp_int, *state.CALIBRATION_DIGITAL_POINT_2_FREQ) * 1e-9, 2
+            )
+            self.response.emit(f"{freq} GHz")
+        logger.info(f"[setNiYigFreq] {resp}")
 
 
 class SpectrumThread(QThread):
@@ -184,7 +195,7 @@ class StreamTabWidget(QScrollArea):
         self.nrxPower.setText("0.0")
         self.nrxPower.setStyleSheet("font-size: 23px; font-weight: bold; color: black;")
 
-        self.btnStartStreamNRX = Button("Start Stream")
+        self.btnStartStreamNRX = Button("Start Stream", animate=True)
         self.btnStartStreamNRX.clicked.connect(self.start_stream_nrx)
 
         self.btnStopStreamNRX = Button("Stop Stream")
@@ -257,7 +268,7 @@ class StreamTabWidget(QScrollArea):
             "font-size: 23px; font-weight: bold; color: black;"
         )
 
-        self.btnStartStreamKeithley = Button("Start Stream")
+        self.btnStartStreamKeithley = Button("Start Stream", animate=True)
         self.btnStartStreamKeithley.clicked.connect(self.start_stream_keithley)
 
         self.btnStopStreamKeithley = Button("Stop Stream")
@@ -270,7 +281,7 @@ class StreamTabWidget(QScrollArea):
         self.keithleyVoltageSet.setRange(0, 30)
         self.keithleyVoltageSet.setDecimals(3)
 
-        self.btnKeithleyVoltageSet = Button("Set voltage")
+        self.btnKeithleyVoltageSet = Button("Set voltage", animate=True)
         self.btnKeithleyVoltageSet.clicked.connect(self.keithley_set_voltage)
 
         self.keithleyCurrentSetLabel = QLabel(self)
@@ -280,7 +291,7 @@ class StreamTabWidget(QScrollArea):
         self.keithleyCurrentSet.setDecimals(4)
         self.keithleyCurrentSet.valueChanged.connect(self.curr2freq)
 
-        self.btnKeithleyCurrentSet = Button("Set current")
+        self.btnKeithleyCurrentSet = Button("Set current", animate=True)
         self.btnKeithleyCurrentSet.clicked.connect(self.keithley_set_current)
 
         self.keithleyFreqLabel = QLabel(self)
@@ -290,7 +301,7 @@ class StreamTabWidget(QScrollArea):
         self.keithleyFreq.setValue(8)
         self.keithleyFreq.valueChanged.connect(self.freq2curr)
 
-        self.btnKeithleyFreqSet = Button("Set frequency")
+        self.btnKeithleyFreqSet = Button("Set frequency", animate=True)
         self.btnKeithleyFreqSet.clicked.connect(self.keithley_set_current)
 
         layout.addWidget(
@@ -330,7 +341,7 @@ class StreamTabWidget(QScrollArea):
         self.groupNiYig.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
-        layout = QGridLayout()
+        layout = QFormLayout()
 
         self.niYigFreqLabel = QLabel(self)
         self.niYigFreqLabel.setText("Freq, GHz")
@@ -338,12 +349,17 @@ class StreamTabWidget(QScrollArea):
         self.niYigFreq.setRange(2.94, 13)
         self.niYigFreq.setValue(state.DIGITAL_YIG_FREQ)
 
-        self.btnSetNiYigFreq = Button("Set frequency")
+        self.niDigitalResponseLabel = QLabel(self)
+        self.niDigitalResponseLabel.setText("Actual:")
+        self.niDigitalResponse = QLabel(self)
+        self.niDigitalResponse.setText("Unknown")
+
+        self.btnSetNiYigFreq = Button("Set frequency", animate=True)
         self.btnSetNiYigFreq.clicked.connect(self.setNiYigFreq)
 
-        layout.addWidget(self.niYigFreqLabel, 1, 0)
-        layout.addWidget(self.niYigFreq, 1, 1)
-        layout.addWidget(self.btnSetNiYigFreq, 2, 0, 1, 2)
+        layout.addRow(self.niYigFreqLabel, self.niYigFreq)
+        layout.addRow(self.niDigitalResponseLabel, self.niDigitalResponse)
+        layout.addRow(self.btnSetNiYigFreq)
 
         self.groupNiYig.setLayout(layout)
 
@@ -352,7 +368,7 @@ class StreamTabWidget(QScrollArea):
         self.groupSpectrum.setTitle("Spectrum")
         layout = QVBoxLayout()
 
-        self.btnStartSpectrum = Button("Start stream spectrum")
+        self.btnStartSpectrum = Button("Start stream spectrum", animate=True)
         self.btnStartSpectrum.clicked.connect(self.startStreamSpectrum)
         self.btnStopSpectrum = Button("Stop stream spectrum")
         self.btnStopSpectrum.clicked.connect(lambda: self.spectrum_thread.terminate())
@@ -387,6 +403,9 @@ class StreamTabWidget(QScrollArea):
         self.set_digital_yig_freq_thread = DigitalYigThread()
         self.set_digital_yig_freq_thread.finished.connect(
             lambda: self.btnSetNiYigFreq.setEnabled(True)
+        )
+        self.set_digital_yig_freq_thread.response.connect(
+            lambda x: self.niDigitalResponse.setText(f"{x}")
         )
         self.set_digital_yig_freq_thread.start()
         self.btnSetNiYigFreq.setEnabled(False)

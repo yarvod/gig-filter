@@ -172,7 +172,7 @@ class SetUpTabWidget(QScrollArea):
         self.nrxStatus = QLabel(self)
         self.nrxStatus.setText("PM is not initialized yet!")
 
-        self.btnInitNRX = Button("Initialize PM")
+        self.btnInitNRX = Button("Initialize", animate=True)
         self.btnInitNRX.clicked.connect(self.initialize_nrx)
 
         layout.addWidget(self.nrxIPLabel, 1, 0)
@@ -202,7 +202,7 @@ class SetUpTabWidget(QScrollArea):
         self.prologixEthernetStatus = QLabel(self)
         self.prologixEthernetStatus.setText("Prologix is not initialized yet!")
 
-        self.btnInitPrologixEthernet = Button("Initialize Prologix")
+        self.btnInitPrologixEthernet = Button("Initialize", animate=True)
         self.btnInitPrologixEthernet.clicked.connect(self.initialize_prologix_ethernet)
 
         layout.addWidget(self.prologixIPAdressLabel, 1, 0)
@@ -232,7 +232,7 @@ class SetUpTabWidget(QScrollArea):
         self.keithleyStatus = QLabel(self)
         self.keithleyStatus.setText("Power supply is not initialized yet!")
 
-        self.btnInitKeithley = Button("Initialize Power supply")
+        self.btnInitKeithley = Button("Initialize", animate=True)
         self.btnInitKeithley.clicked.connect(self.initialize_keithley)
 
         self.keithleyStateLabel = QLabel(self)
@@ -274,7 +274,7 @@ class SetUpTabWidget(QScrollArea):
         self.rsSpectrumStatus = QLabel(self)
         self.rsSpectrumStatus.setText("RS Spectrum is not initialized yet!")
 
-        self.btnInitRsSpectrum = Button("Initialize RS Spectrum")
+        self.btnInitRsSpectrum = Button("Initialize", animate=True)
         self.btnInitRsSpectrum.clicked.connect(self.initialize_rs_spectrum)
 
         layout.addWidget(self.rsSpectrumAddressLabel, 1, 0)
@@ -301,7 +301,7 @@ class SetUpTabWidget(QScrollArea):
         self.digitalYigStatus = QLabel(self)
         self.digitalYigStatus.setText("Not initialized yet!")
 
-        self.btnInitDigitalYig = Button("Initialize")
+        self.btnInitDigitalYig = Button("Initialize", animate=True)
         self.btnInitDigitalYig.clicked.connect(self.initialize_digital_yig)
 
         layout.addRow(self.digitalYigAddressLabel, self.digitalYigAddress)

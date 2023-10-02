@@ -5,8 +5,13 @@ from PyQt6.QtWidgets import QPushButton
 
 
 class Button(QPushButton):
-    def __init__(self, parent):
+    loading_gif = "./assets/loading.gif"
+
+    def __init__(self, parent, animate=False):
         super().__init__(parent)
+        self.animate = animate
+        if self.animate:
+            self.setGif(self.loading_gif)
         self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self._animation = QtCore.QVariantAnimation(
             startValue=QtGui.QColor("white"),
@@ -15,6 +20,39 @@ class Button(QPushButton):
             duration=300,
         )
         self._update_stylesheet(QtGui.QColor("#6d72c3"), QtGui.QColor("white"))
+
+    def setEnabled(self, enabled):
+        super().setEnabled(enabled)
+        if not self.animate:
+            return
+        if enabled:
+            self.stop()
+        else:
+            self.start()
+
+    @QtCore.pyqtSlot()
+    def start(self):
+        if hasattr(self, "_movie"):
+            self._movie.start()
+
+    @QtCore.pyqtSlot()
+    def stop(self):
+        if hasattr(self, "_movie"):
+            self._movie.stop()
+            self.setIcon(QtGui.QIcon())
+
+    def setGif(self, filename: str):
+        if not hasattr(self, "_movie"):
+            self._movie = QtGui.QMovie(self)
+            self._movie.setFileName(filename)
+            self._movie.frameChanged.connect(self.on_frameChanged)
+            if self._movie.loopCount() != -1:
+                self._movie.finished.connect(self.start)
+        self.stop()
+
+    @QtCore.pyqtSlot(int)
+    def on_frameChanged(self, frameNumber):
+        self.setIcon(QtGui.QIcon(self._movie.currentPixmap()))
 
     def _on_value_changed(self, color):
         foreground = (
